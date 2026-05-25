@@ -30,6 +30,16 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           if_no_artifact_found: ignore
 
+      - name: 02 API 테스트 artifact 다운로드 (수동 실행 시)
+        if: github.event_name == 'workflow_dispatch'
+        uses: dawidd6/action-download-artifact@v9
+        with:
+          workflow: 02_test_api.yml
+          name: test-api-results
+          path: .
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          if_no_artifact_found: ignore
+
       - name: 03 데이터 테스트 artifact 다운로드 (수동 실행 시)
         if: github.event_name == 'workflow_dispatch'
         uses: dawidd6/action-download-artifact@v9
@@ -70,7 +80,7 @@ jobs:
                       return os.path.join(root, name)
               return None
 
-          for partial_file in ("_data_result.json", "_db_result.json"):
+          for partial_file in ("_api_result.json", "_data_result.json", "_db_result.json"):
               path = find_file(partial_file)
               if path and os.path.exists(path):
                   with open(path, "r", encoding="utf-8") as f:

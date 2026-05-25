@@ -36,8 +36,6 @@ jobs:
         run: |
           python - << 'EOF'
           import os
-          import json
-          from datetime import datetime
 
           keys = [
               "DART_API_KEY",
@@ -67,34 +65,7 @@ jobs:
               else:
                   print(f"[OK]   {key} 설정됨")
 
-          # results.json 업데이트
-          try:
-              with open("results.json", "r", encoding="utf-8") as f:
-                  data = json.load(f)
-          except:
-              data = {}
-
-          data["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-          data["kis"] = {
-              "status": "ok" if all_ok else "fail",
-              "workflow": "01_check_env.yml",
-              "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-              "data": results,
-              "error": None if all_ok else "누락된 환경변수가 있습니다"
-          }
-
-          with open("results.json", "w", encoding="utf-8") as f:
-              json.dump(data, f, ensure_ascii=False, indent=2)
-
           print(f"\n환경변수 체크 완료: {'전체 통과' if all_ok else '일부 누락'}")
           if not all_ok:
               exit(1)
           EOF
-
-      - name: results.json 커밋
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add results.json
-          git diff --staged --quiet || git commit -m "ci: 01 환경변수 체크 결과 업데이트"
-          git push
