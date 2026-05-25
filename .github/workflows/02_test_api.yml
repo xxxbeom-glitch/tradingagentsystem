@@ -193,7 +193,7 @@ jobs:
               response = client.chat.completions.create(
                   model=model,
                   messages=[{"role": "user", "content": "ping"}],
-                  max_tokens=10
+                  max_tokens=100
               )
               latency = int((time.time() - start) * 1000)
               ok = response and response.choices[0].message.content
