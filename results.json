@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-05-25T11:20:31",
+  "updated_at": "2026-05-25T11:20:58",
   "kis": {
     "status": "ok",
     "workflow": "01_check_env.yml",
-    "run_at": "2026-05-25T11:20:31",
+    "run_at": "2026-05-25T11:20:58",
     "data": {
       "DART_API_KEY": "설정됨",
       "DEEPSEEK_API_KEY": "설정됨",
