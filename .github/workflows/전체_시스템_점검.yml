@@ -535,7 +535,7 @@ jobs:
           ticker = "005930"
           start = time.time()
           try:
-              items = get_disclosures_by_ticker(ticker, days=30)
+              items = get_disclosures_by_ticker(ticker, days=7)
               latency = int((time.time() - start) * 1000)
               ok = isinstance(items, list)
               count = len(items)
