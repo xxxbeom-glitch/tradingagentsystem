@@ -1,87 +1,9 @@
 {
-<<<<<<< Updated upstream
-  "updated_at": "2026-05-25T12:04:29",
-=======
-  "updated_at": "2026-05-25T12:04:44",
->>>>>>> Stashed changes
-  "kis": {
-    "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:04:31",
-    "data": {
-      "토큰발급": "성공",
-      "응답코드": "200",
-      "계좌번호확인": "성공",
-      "응답시간": "639ms"
-    },
-    "error": null
-  },
-  "dart": {
-    "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:04:33",
-    "data": {
-      "API키확인": "성공",
-      "공시조회테스트": "성공",
-      "조회기간": "20260425~20260525",
-      "기간내공시건수": "19066건",
-      "응답시간": "1217ms"
-    },
-    "error": null
-  },
-  "gemini": {
-    "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:04:34",
-    "data": {
-      "모델": "gemini-2.5-flash",
-      "연결상태": "성공",
-      "응답테스트": "성공",
-      "응답시간": "834ms"
-    },
-    "error": null
-  },
-  "deepseek": {
-    "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:04:39",
-    "data": {
-      "모델": "deepseek-chat",
-      "연결상태": "성공",
-      "응답테스트": "성공",
-      "응답시간": "2245ms"
-    },
-    "error": null
-  },
-  "naver": {
-    "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:04:40",
-    "data": {
-      "CLIENT_ID확인": "성공",
-      "뉴스검색테스트": "성공",
-      "검색결과": "3051437건",
-      "응답시간": "1209ms"
-    },
-    "error": null
-  },
-  "pykrx": {
-    "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:04:44",
-    "data": {
-      "라이브러리로드": "성공",
-      "코스피조회": "성공",
-      "코스닥조회": "성공",
-      "종목수": "948개",
-      "응답시간": "3506ms"
-    },
-    "error": null
-  },
+  "updated_at": "2026-05-25T12:05:56",
   "realtime": {
     "status": "fail",
     "workflow": "03_test_data.yml",
-    "run_at": "2026-05-25T11:44:30",
+    "run_at": "2026-05-25T12:05:27",
     "data": {
       "종목": "삼성전자(005930)",
       "현재가": "—",
@@ -94,7 +16,7 @@
   "supply": {
     "status": "fail",
     "workflow": "03_test_data.yml",
-    "run_at": "2026-05-25T11:44:31",
+    "run_at": "2026-05-25T12:05:28",
     "data": {
       "외국인순매수조회": "실패",
       "기관순매수조회": "실패",
@@ -107,53 +29,13 @@
   "disclosure": {
     "status": "ok",
     "workflow": "03_test_data.yml",
-    "run_at": "2026-05-25T11:44:56",
+    "run_at": "2026-05-25T12:05:55",
     "data": {
       "공시수집": "성공",
       "종목": "삼성전자(005930)",
       "조회건수": "10건",
       "최근공시": "주식등의대량보유상황보고서(일반)",
-      "응답시간": "23684ms"
-    },
-    "error": null
-  },
-  "db-connect": {
-    "status": "ok",
-    "workflow": "04_test_db.yml",
-    "run_at": "2026-05-25T12:04:29",
-    "data": {
-      "DB파일생성": "성공",
-      "연결상태": "성공",
-      "경로": "/home/runner/work/tradingagentsystem/tradingagentsystem/trading_agent.db",
-      "응답시간": "11ms"
-    },
-    "error": null
-  },
-  "db-schema": {
-    "status": "ok",
-    "workflow": "04_test_db.yml",
-    "run_at": "2026-05-25T12:04:29",
-    "data": {
-      "market_data테이블": "성공",
-      "disclosure_data테이블": "성공",
-      "trigger_log테이블": "성공",
-      "ai_decision_log테이블": "성공",
-      "portfolio테이블": "성공",
-      "balance테이블": "성공",
-      "응답시간": "0ms"
-    },
-    "error": null
-  },
-  "db-write": {
-    "status": "ok",
-    "workflow": "04_test_db.yml",
-    "run_at": "2026-05-25T12:04:29",
-    "data": {
-      "INSERT테스트": "성공",
-      "SELECT테스트": "성공",
-      "데이터일치여부": "성공",
-      "저장가격": "70,000원",
-      "소요시간": "1ms"
+      "응답시간": "26623ms"
     },
     "error": null
   }
