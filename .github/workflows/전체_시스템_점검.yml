@@ -446,6 +446,82 @@ jobs:
               json.dump(supply_result, f, ensure_ascii=False)
           EOF
 
+      - name: 트리거 조건 테스트
+        id: test-trigger
+        run: |
+          python - << 'EOF'
+          import json, os, sys
+          from datetime import datetime
+
+          sys.path.insert(0, os.getcwd())
+          from triggers.conditions import (
+              check_volume_surge,
+              check_institution_buy_turn,
+              check_foreign_consecutive_buy,
+              check_sector_top3,
+              check_52week_high,
+              count_triggers,
+          )
+
+          WF = "전체_시스템_점검.yml"
+          RUN_AT = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+          results = []
+          all_ok = True
+
+          r1 = check_volume_surge("005930", 3000000, 900000)
+          ok = r1["triggered"] == True
+          results.append(r1)
+          if not ok: all_ok = False
+          print(f"[{'OK' if ok else 'FAIL'}] check_volume_surge: {r1}")
+
+          r2 = check_institution_buy_turn("005930", 50000, -30000)
+          ok = r2["triggered"] == True
+          results.append(r2)
+          if not ok: all_ok = False
+          print(f"[{'OK' if ok else 'FAIL'}] check_institution_buy_turn: {r2}")
+
+          r3 = check_foreign_consecutive_buy("005930", [100000, 200000, 150000])
+          ok = r3["triggered"] == True
+          results.append(r3)
+          if not ok: all_ok = False
+          print(f"[{'OK' if ok else 'FAIL'}] check_foreign_consecutive_buy: {r3}")
+
+          r4 = check_sector_top3(2)
+          ok = r4["triggered"] == True
+          results.append(r4)
+          if not ok: all_ok = False
+          print(f"[{'OK' if ok else 'FAIL'}] check_sector_top3: {r4}")
+
+          r5 = check_52week_high("005930", 98000, 100000)
+          ok = r5["triggered"] == True
+          results.append(r5)
+          if not ok: all_ok = False
+          print(f"[{'OK' if ok else 'FAIL'}] check_52week_high: {r5}")
+
+          count = count_triggers(results)
+          print(f"[OK] count_triggers: {count}개 충족")
+
+          result = {
+              "status": "ok" if all_ok else "fail",
+              "workflow": WF,
+              "run_at": RUN_AT,
+              "data": {
+                  "거래량급증": "성공" if r1["triggered"] else "실패",
+                  "기관순매수전환": "성공" if r2["triggered"] else "실패",
+                  "외국인연속순매수": "성공" if r3["triggered"] else "실패",
+                  "업종상위3위": "성공" if r4["triggered"] else "실패",
+                  "52주신고가": "성공" if r5["triggered"] else "실패",
+                  "충족조건수": f"{count}개",
+                  "AI호출대상": "예" if count >= 2 else "아니오",
+              },
+              "error": None,
+          }
+
+          with open("_trigger_result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
       - name: 공시 수집 테스트 (disclosure)
         id: test-disclosure
         run: |
@@ -706,6 +782,7 @@ jobs:
               "pykrx": "_pykrx_result.json",
               "realtime": "_realtime_result.json",
               "supply": "_supply_result.json",
+              "trigger": "_trigger_result.json",
               "disclosure": "_disclosure_result.json",
               "db-connect": "_db_connect_result.json",
               "db-schema": "_db_schema_result.json",
