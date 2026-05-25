@@ -89,6 +89,9 @@ jobs:
                   "error": None if ok else f"HTTP {res.status_code}: {res.text[:100]}"
               }
               print(f"[{'OK' if ok else 'FAIL'}] KIS API 토큰 발급: {latency}ms")
+              token = res.json().get("access_token", "") if ok else ""
+              with open("_kis_token.txt", "w") as f:
+                  f.write(token)
           except Exception as e:
               result = {
                   "status": "fail", "workflow": "전체_시스템_점검.yml",
@@ -350,6 +353,13 @@ jobs:
           ticker = "005930"
 
           client = KISClient()
+          if os.path.exists("_kis_token.txt"):
+              with open("_kis_token.txt") as f:
+                  token = f.read().strip()
+              if token:
+                  client._access_token = token
+                  client._token_expires_at = time.time() + 86400
+                  print("[INFO] 기존 토큰 재사용")
           print("[INFO] KISClient 단일 인스턴스 생성 — 토큰 1회 발급 후 재사용")
 
           # --- realtime (현재가) ---
