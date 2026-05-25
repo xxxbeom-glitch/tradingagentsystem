@@ -19,7 +19,7 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG_PATH = os.path.join(ROOT_DIR, "logs", "api", "kis_api.log")
 MARKET_LOG_PATH = os.path.join(ROOT_DIR, "logs", "market", "realtime.log")
 
-DEFAULT_BASE_URL = "https://openapivts.koreainvestment.com:29443"
+DEFAULT_BASE_URL = "https://openapi.koreainvestment.com:9443"
 DEFAULT_WS_URL = "ws://ops.koreainvestment.com:21000"
 
 
