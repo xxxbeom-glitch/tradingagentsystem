@@ -789,6 +789,10 @@ jobs:
               "db-write": "_db_write_result.json",
           }
 
+          # timeline 키가 없으면 빈 배열로 초기화 (기존 데이터 유지)
+          if "timeline" not in data:
+              data["timeline"] = []
+
           for key, fname in mapping.items():
               if os.path.exists(fname):
                   with open(fname, "r", encoding="utf-8") as f:

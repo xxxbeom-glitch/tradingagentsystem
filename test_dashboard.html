@@ -114,6 +114,42 @@
     transition: background 0.15s;
   }
   .log-btn:hover { background: rgba(77,159,255,0.15); }
+  .page-shell { display: flex; align-items: flex-start; }
+  .dashboard-main { flex: 1; min-width: 0; }
+  .timeline-panel {
+    width: 300px; flex-shrink: 0;
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    position: sticky; top: 57px;
+    height: calc(100vh - 57px);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .timeline-header {
+    padding: 16px 18px; border-bottom: 1px solid var(--border);
+    font-family: 'Space Mono', 'Consolas', monospace;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--text2); flex-shrink: 0;
+  }
+  .timeline-body {
+    flex: 1; overflow-y: auto; padding: 12px 14px;
+    font-family: 'Space Mono', 'Consolas', monospace;
+    font-size: 12px; line-height: 1.7; color: var(--text);
+  }
+  .timeline-body::-webkit-scrollbar { width: 4px; }
+  .timeline-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  .timeline-line { word-break: break-word; }
+  .timeline-time { color: var(--text3); }
+  .timeline-badge { font-size: 11px; font-weight: 600; }
+  .timeline-line.tl-trigger .timeline-badge { color: var(--blue); }
+  .timeline-line.tl-buy .timeline-badge { color: var(--green); }
+  .timeline-line.tl-sell .timeline-badge { color: var(--red); }
+  .timeline-line.tl-disclosure .timeline-badge { color: var(--amber); }
+  .timeline-text { color: var(--text); }
+  .timeline-empty {
+    font-family: 'Space Mono', 'Consolas', monospace;
+    font-size: 12px; color: var(--text3); text-align: center; padding: 24px 12px;
+  }
   .stale-banner {
     display: none; padding: 12px 32px; font-size: 14px; font-weight: 500;
     text-align: center; letter-spacing: 0.02em;
@@ -125,6 +161,10 @@
   .stale-banner.critical {
     background: var(--red-dim); color: var(--red);
     border-bottom: 1px solid rgba(255,77,106,0.25);
+  }
+  @media (max-width: 1200px) {
+    .page-shell { flex-direction: column; }
+    .timeline-panel { width: 100%; height: 320px; position: relative; top: 0; border-left: none; border-top: 1px solid var(--border); }
   }
   @media (max-width: 768px) { main { padding: 20px 16px; } header { padding: 14px 16px; } .cards-grid { grid-template-columns: 1fr; } .stale-banner { padding: 10px 16px; font-size: 13px; } }
 </style>
@@ -144,6 +184,8 @@
 
 <div id="staleBanner" class="stale-banner"></div>
 
+<div class="page-shell">
+<div class="dashboard-main">
 <main>
 
   <div class="section">
@@ -192,6 +234,13 @@
 </div>
 
 </main>
+</div>
+
+<aside class="timeline-panel" aria-label="실시간 감시 로그">
+  <div class="timeline-header">실시간 감시 로그</div>
+  <div class="timeline-body" id="timelineBody"></div>
+</aside>
+</div>
 
 <script>
 // ─────────────────────────────────────────
@@ -233,6 +282,13 @@ const CARDS = {
 
 // results.json 초기 상태 (GitHub Actions 실행 전)
 const EMPTY_RESULTS = { updated_at: null };
+
+const TIMELINE_TYPE_CLASS = {
+  '매수': 'tl-buy',
+  '매도': 'tl-sell',
+  '공시': 'tl-disclosure',
+  '트리거': 'tl-trigger',
+};
 
 // ─────────────────────────────────────────
 // 렌더링
@@ -396,6 +452,37 @@ function updateStaleBanner(data) {
   }
 }
 
+function normalizeTimelineItem(item) {
+  if (typeof item === 'string') {
+    const parts = item.split('|').map(s => s.trim());
+    return { time: parts[0] || '', type: parts[1] || '', text: parts.slice(2).join('|').trim() };
+  }
+  return {
+    time: item.time || item.at || '',
+    type: item.type || '',
+    text: item.text || item.content || item.message || '',
+  };
+}
+
+function buildTimelineItem(item) {
+  const type = item.type || '트리거';
+  const cls = TIMELINE_TYPE_CLASS[type] || 'tl-trigger';
+  const time = item.time || '—';
+  const text = item.text || '';
+  return `<div class="timeline-line ${cls}"><span class="timeline-time">[${time}]</span> <span class="timeline-badge">[${type}]</span> <span class="timeline-text">${text}</span></div>`;
+}
+
+function renderTimeline(data) {
+  const body = document.getElementById('timelineBody');
+  if (!body) return;
+  const timeline = Array.isArray(data.timeline) ? data.timeline : [];
+  if (timeline.length === 0) {
+    body.innerHTML = '<div class="timeline-empty">감시 데이터 대기중...</div>';
+    return;
+  }
+  body.innerHTML = timeline.map(normalizeTimelineItem).map(buildTimelineItem).join('');
+}
+
 function render(data) {
   if (data.updated_at) {
     document.getElementById('lastUpdated').textContent =
@@ -404,6 +491,7 @@ function render(data) {
     document.getElementById('lastUpdated').textContent = '—';
   }
   updateStaleBanner(data);
+  renderTimeline(data);
 
   ['api','db','data','ai-a','ai-b'].forEach(s => renderSection(s, data));
 
