@@ -1,0 +1,100 @@
+name: 01 환경변수 체크
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ dev, main ]
+
+jobs:
+  check-env:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 환경변수 존재 여부 확인
+        id: check
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_BASE_URL: ${{ secrets.DEEPSEEK_BASE_URL }}
+          DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          KIS_ACCOUNT_NO: ${{ secrets.KIS_ACCOUNT_NO }}
+          KIS_APP_KEY: ${{ secrets.KIS_APP_KEY }}
+          KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+        run: |
+          python - << 'EOF'
+          import os
+          import json
+          from datetime import datetime
+
+          keys = [
+              "DART_API_KEY",
+              "DEEPSEEK_API_KEY",
+              "DEEPSEEK_BASE_URL",
+              "DEEPSEEK_MODEL",
+              "GEMINI_API_KEY",
+              "KIS_ACCOUNT_NO",
+              "KIS_APP_KEY",
+              "KIS_APP_SECRET",
+              "KRX_ID",
+              "KRX_PW",
+              "NAVER_CLIENT_ID",
+              "NAVER_CLIENT_SECRET",
+          ]
+
+          results = {}
+          all_ok = True
+
+          for key in keys:
+              val = os.environ.get(key, "")
+              ok = len(val) > 0
+              results[key] = "설정됨" if ok else "누락"
+              if not ok:
+                  all_ok = False
+                  print(f"[FAIL] {key} 누락")
+              else:
+                  print(f"[OK]   {key} 설정됨")
+
+          # results.json 업데이트
+          try:
+              with open("results.json", "r", encoding="utf-8") as f:
+                  data = json.load(f)
+          except:
+              data = {}
+
+          data["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+          data["kis"] = {
+              "status": "ok" if all_ok else "fail",
+              "workflow": "01_check_env.yml",
+              "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+              "data": results,
+              "error": None if all_ok else "누락된 환경변수가 있습니다"
+          }
+
+          with open("results.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+
+          print(f"\n환경변수 체크 완료: {'전체 통과' if all_ok else '일부 누락'}")
+          if not all_ok:
+              exit(1)
+          EOF
+
+      - name: results.json 커밋
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add results.json
+          git diff --staged --quiet || git commit -m "ci: 01 환경변수 체크 결과 업데이트"
+          git push

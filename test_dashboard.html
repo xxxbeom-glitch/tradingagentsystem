@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Agent System — 개발 현황</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0c0f; --surface: #111318; --surface2: #181c22;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+    --text: #e8eaf0; --text2: #8890a0; --text3: #545c6a;
+    --green: #1fd67a; --green-dim: rgba(31,214,122,0.08);
+    --red: #ff4d6a; --red-dim: rgba(255,77,106,0.08);
+    --blue: #4d9fff; --amber: #ffb84d; --amber-dim: rgba(255,184,77,0.08);
+  }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  header {
+    padding: 18px 32px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: rgba(10,12,15,0.96);
+    backdrop-filter: blur(10px); z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+  .logo-text { font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700; letter-spacing: 0.08em; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .header-badge {
+    font-size: 13px; padding: 5px 12px;
+    border-radius: 4px; background: var(--amber-dim); color: var(--amber);
+    border: 1px solid rgba(255,184,77,0.2); letter-spacing: 0.02em;
+  }
+  .last-updated { font-size: 13px; color: var(--text3); }
+  main { padding: 28px 32px; width: 100%; margin: 0 auto; }
+  .section { margin-bottom: 32px; }
+  .section-label {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.12em; color: var(--text2);
+    text-transform: uppercase; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .section-count { font-family: 'Space Mono', monospace; font-size: 12px; }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden; transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border2); }
+  .card.status-ok   { border-left: 3px solid var(--green); }
+  .card.status-fail { border-left: 3px solid var(--red); }
+  .card.status-pending { border-left: 3px solid var(--text3); }
+  .card-header {
+    padding: 18px 20px 16px; display: flex; align-items: flex-start;
+    justify-content: space-between; border-bottom: 1px solid var(--border);
+  }
+  .card-header-left { display: flex; align-items: flex-start; gap: 12px; }
+  .status-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: var(--text3);
+    flex-shrink: 0; margin-top: 5px; transition: background 0.3s, box-shadow 0.3s;
+  }
+  .status-dot.ok   { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .status-dot.fail { background: var(--red);   box-shadow: 0 0 8px var(--red); }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .card-sub { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text3); }
+  .status-badge {
+    font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+    padding: 4px 10px; border-radius: 4px; white-space: nowrap; flex-shrink: 0;
+  }
+  .badge-ok      { background: var(--green-dim); color: var(--green); border: 1px solid rgba(31,214,122,0.2); }
+  .badge-fail    { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(255,77,106,0.2); }
+  .badge-pending { background: rgba(255,255,255,0.04); color: var(--text3); border: 1px solid var(--border); }
+  .card-body { padding: 16px 20px; }
+  .result-empty { font-size: 13px; color: var(--text3); padding: 4px 0; }
+  .result-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-key { color: var(--text2); font-size: 13px; min-width: 140px; flex-shrink: 0; }
+  .result-val { color: var(--text); font-family: 'Space Mono', monospace; font-size: 13px; text-align: right; word-break: break-all; }
+  .result-val.ok   { color: var(--green); }
+  .result-val.fail { color: var(--red); }
+  .result-val.warn { color: var(--amber); }
+  .error-box {
+    margin-top: 8px; padding: 8px 10px; background: var(--red-dim);
+    border-radius: 5px; border: 1px solid rgba(255,77,106,0.15);
+    font-size: 12px; color: var(--red);
+    line-height: 1.6; word-break: break-all;
+  }
+  .card-footer {
+    padding: 12px 20px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-workflow { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text3); }
+  .footer-time { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text3); }
+  .log-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .log-header { padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .log-title { font-size: 13px; color: var(--text3); letter-spacing: 0.04em; }
+  .log-body { padding: 12px 16px; height: 180px; overflow-y: auto; font-family: 'Space Mono', monospace; font-size: 13px; line-height: 2; }
+  .log-body::-webkit-scrollbar { width: 3px; }
+  .log-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  .log-line       { color: var(--text3); }
+  .log-line.ok    { color: var(--green); }
+  .log-line.fail  { color: var(--red); }
+  .log-line.info  { color: var(--blue); }
+  .log-line.warn  { color: var(--amber); }
+
+  .log-btn {
+    font-size: 11px;
+    padding: 3px 10px; border-radius: 4px; cursor: pointer;
+    background: rgba(77,159,255,0.08); color: #4d9fff;
+    border: 1px solid rgba(77,159,255,0.2);
+    transition: background 0.15s;
+  }
+  .log-btn:hover { background: rgba(77,159,255,0.15); }
+  @media (max-width: 768px) { main { padding: 20px 16px; } header { padding: 14px 16px; } .cards-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <span class="logo-text">TRADING AGENT SYSTEM</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">개발 현황 모니터</span>
+    <span class="last-updated" id="lastUpdated">—</span>
+  </div>
+</header>
+
+<main>
+
+  <div class="section">
+    <div class="section-label">API 연결 <span class="section-count" id="count-api"></span></div>
+    <div class="cards-grid" id="grid-api"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">데이터베이스 <span class="section-count" id="count-db"></span></div>
+    <div class="cards-grid" id="grid-db"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">데이터 수신 <span class="section-count" id="count-data"></span></div>
+    <div class="cards-grid" id="grid-data"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">AI 파이프라인 — 팀 A (스피드) <span class="section-count" id="count-ai-a"></span></div>
+    <div class="cards-grid" id="grid-ai-a"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">AI 파이프라인 — 팀 B (검증) <span class="section-count" id="count-ai-b"></span></div>
+    <div class="cards-grid" id="grid-ai-b"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">시스템 로그</div>
+    <div class="log-panel">
+      <div class="log-header"><span class="log-title">RESULTS.JSON 로드 로그</span></div>
+      <div class="log-body" id="logBody"></div>
+    </div>
+  </div>
+
+
+<!-- 로그 모달 -->
+<div id="logModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;align-items:center;justify-content:center;padding:32px;">
+  <div style="background:#111318;border:1px solid rgba(255,255,255,0.12);border-radius:12px;width:100%;max-width:800px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;">
+      <span id="modalTitle" style="font-family:'Space Mono',monospace;font-size:12px;color:#8890a0;"></span>
+      <button id="modalClose" style="background:none;border:none;color:#545c6a;font-size:18px;cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+    </div>
+    <pre id="modalBody" style="padding:16px 20px;font-family:'Space Mono',monospace;font-size:12px;line-height:1.8;color:#e8eaf0;overflow-y:auto;margin:0;white-space:pre-wrap;word-break:break-all;flex:1;"></pre>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ─────────────────────────────────────────
+// 카드 정의
+// ─────────────────────────────────────────
+const CARDS = {
+  api: [
+    { id: 'kis',      title: '한국투자증권 API', sub: '01_check_env.yml / 02_test_api.yml', log: 'logs/api/kis_api.log' },
+    { id: 'dart',     title: 'DART API',         sub: '02_test_api.yml',                    log: 'logs/api/dart_api.log' },
+    { id: 'gemini',   title: 'Gemini API',        sub: '02_test_api.yml',                    log: 'logs/api/gemini_api.log' },
+    { id: 'deepseek', title: 'DeepSeek API',      sub: '02_test_api.yml',                    log: 'logs/api/deepseek_api.log' },
+    { id: 'naver',    title: 'Naver API',          sub: '02_test_api.yml',                    log: 'logs/api/naver_api.log' },
+    { id: 'pykrx',    title: 'pykrx',             sub: '02_test_api.yml',                    log: 'logs/api/pykrx_api.log' },
+  ],
+  db: [
+    { id: 'db-connect', title: 'SQLite 연결',     sub: '04_test_db.yml', log: 'logs/system/health.log' },
+    { id: 'db-write',   title: 'DB 쓰기 / 읽기', sub: '04_test_db.yml', log: 'logs/system/health.log' },
+    { id: 'db-schema',  title: '테이블 스키마',   sub: '04_test_db.yml', log: 'logs/system/error.log' },
+  ],
+  data: [
+    { id: 'realtime',   title: '실시간 시세 수신', sub: '03_test_data.yml',     log: 'logs/market/realtime.log' },
+    { id: 'supply',     title: '수급 데이터',      sub: '03_test_data.yml',     log: 'logs/market/realtime.log' },
+    { id: 'disclosure', title: '공시 수집',         sub: '03_test_data.yml',     log: 'logs/api/dart_api.log' },
+    { id: 'trigger',    title: '트리거 조건 감지',  sub: '05_test_trigger.yml',  log: 'logs/market/trigger.log' },
+  ],
+  'ai-a': [
+    { id: 'team-a-collect',  title: 'Gemini Flash — 정보 수집 / 분석',         sub: '06_test_team_a.yml', log: 'logs/agents/team_a.log' },
+    { id: 'team-a-decision', title: 'DeepSeek R1 — 종목 최종 결정',            sub: '06_test_team_a.yml', log: 'logs/agents/team_a.log' },
+    { id: 'team-a-json',     title: 'JSON 출력 파싱 — action / ticker / 수량', sub: '06_test_team_a.yml', log: 'logs/agents/team_a.log' },
+  ],
+  'ai-b': [
+    { id: 'team-b-collect',  title: 'DeepSeek V3 — 정보 수집 / 분석',         sub: '07_test_team_b.yml', log: 'logs/agents/team_b.log' },
+    { id: 'team-b-decision', title: 'Gemini Pro — 종목 결정',                  sub: '07_test_team_b.yml', log: 'logs/agents/team_b.log' },
+    { id: 'team-b-verify',   title: 'DeepSeek R1 — 반론 검증 (병렬)',          sub: '07_test_team_b.yml', log: 'logs/agents/verification.log' },
+    { id: 'team-b-final',    title: '최종 승인 / 거절 판단',                    sub: '07_test_team_b.yml', log: 'logs/agents/verification.log' },
+    { id: 'team-b-json',     title: 'JSON 출력 파싱 — action / ticker / 수량', sub: '07_test_team_b.yml', log: 'logs/agents/team_b.log' },
+  ]
+};
+
+// ─────────────────────────────────────────
+// 더미 데이터 (GitHub Actions 실행 전 미리보기용)
+// 실제 운용 시 results.json 파일로 교체됨
+// ─────────────────────────────────────────
+const DUMMY_RESULTS = {
+  updated_at: "2025-05-25T15:47:23",
+  kis: {
+    status: "ok", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:10",
+    data: { "토큰발급": "성공", "응답코드": "200", "계좌번호확인": "성공", "응답시간": "287ms" }, error: null
+  },
+  dart: {
+    status: "ok", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:12",
+    data: { "API키확인": "성공", "공시조회테스트": "성공", "오늘공시건수": "43건", "응답시간": "412ms" }, error: null
+  },
+  gemini: {
+    status: "ok", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:14",
+    data: { "모델": "gemini-2.5-flash", "연결상태": "성공", "응답테스트": "성공", "응답시간": "1,243ms" }, error: null
+  },
+  deepseek: {
+    status: "fail", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:16",
+    data: { "API키확인": "성공", "연결시도": "실패" },
+    error: "ConnectionError: Max retries exceeded. DeepSeek API 서버 응답 없음 (timeout 10s)"
+  },
+  naver: {
+    status: "ok", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:18",
+    data: { "CLIENT_ID확인": "성공", "뉴스검색테스트": "성공", "검색결과": "10건", "응답시간": "198ms" }, error: null
+  },
+  pykrx: {
+    status: "ok", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:20",
+    data: { "라이브러리로드": "성공", "코스피조회": "성공", "코스닥조회": "성공", "응답시간": "876ms" }, error: null
+  },
+  "db-connect": {
+    status: "ok", workflow: "04_test_db.yml", run_at: "2025-05-25T15:45:30",
+    data: { "DB파일생성": "성공", "연결상태": "성공", "경로": "trading_agent.db" }, error: null
+  },
+  "db-write": {
+    status: "ok", workflow: "04_test_db.yml", run_at: "2025-05-25T15:45:31",
+    data: { "INSERT테스트": "성공", "SELECT테스트": "성공", "데이터일치여부": "성공", "소요시간": "12ms" }, error: null
+  },
+  "db-schema": {
+    status: "fail", workflow: "04_test_db.yml", run_at: "2025-05-25T15:45:32",
+    data: { "시장데이터테이블": "성공", "공시데이터테이블": "성공", "트리거기록테이블": "실패", "AI판단테이블": "대기", "포트폴리오테이블": "대기", "잔고현황테이블": "대기" },
+    error: "OperationalError: table trigger_log already exists (스키마 충돌)"
+  },
+  realtime: {
+    status: "ok", workflow: "03_test_data.yml", run_at: "2025-05-25T15:45:40",
+    data: { "웹소켓연결": "성공", "TR_ID": "H0STCNT0", "수신종목": "삼성전자(005930)", "현재가": "73,400원", "체결시간": "15:44:58" }, error: null
+  },
+  supply: {
+    status: "ok", workflow: "03_test_data.yml", run_at: "2025-05-25T15:45:42",
+    data: { "외국인순매수조회": "성공", "기관순매수조회": "성공", "외국인1위": "삼성전자 +1,240억", "기관1위": "SK하이닉스 +890억" }, error: null
+  },
+  disclosure: {
+    status: "ok", workflow: "03_test_data.yml", run_at: "2025-05-25T15:45:44",
+    data: { "공시수집": "성공", "오늘공시건수": "43건", "긍정분류": "12건", "부정분류": "8건", "중립분류": "23건" }, error: null
+  },
+  trigger: {
+    status: "fail", workflow: "05_test_trigger.yml", run_at: "2025-05-25T15:46:00",
+    data: { "거래량급등감지": "성공", "기관순매수감지": "성공", "외국인연속감지": "실패", "업종등락감지": "대기" },
+    error: "AttributeError: 'NoneType' object has no attribute 'consecutive_days' — 외국인 연속 순매수 계산 로직 오류"
+  },
+  "team-a-collect": {
+    status: "ok", workflow: "06_test_team_a.yml", run_at: "2025-05-25T15:46:10",
+    data: { "Gemini Flash호출": "성공", "분석결과수신": "성공", "섹터스캔": "성공", "후보종목수": "6종목", "소요시간": "2,341ms" }, error: null
+  },
+  "team-a-decision": {
+    status: "ok", workflow: "06_test_team_a.yml", run_at: "2025-05-25T15:46:13",
+    data: { "DeepSeek R1호출": "성공", "종목결정": "성공", "선정종목": "에코프로(086520)", "확신도": "HIGH", "소요시간": "2,480ms" }, error: null
+  },
+  "team-a-json": {
+    status: "fail", workflow: "06_test_team_a.yml", run_at: "2025-05-25T15:46:14",
+    data: { "action필드": "성공", "ticker필드": "성공", "confidence필드": "성공", "quantity필드": "실패", "target_price필드": "대기" },
+    error: "JSONDecodeError: quantity 필드 누락 — AI 응답에 수량 정보 없음"
+  },
+  "team-b-collect": {
+    status: "ok", workflow: "07_test_team_b.yml", run_at: "2025-05-25T15:46:20",
+    data: { "DeepSeek V3호출": "성공", "분석결과수신": "성공", "후보종목수": "4종목", "소요시간": "3,214ms" }, error: null
+  },
+  "team-b-decision": {
+    status: "ok", workflow: "07_test_team_b.yml", run_at: "2025-05-25T15:46:24",
+    data: { "Gemini Pro호출": "성공", "종목결정": "성공", "선정종목": "LG에너지솔루션(373220)", "확신도": "MEDIUM", "소요시간": "3,102ms" }, error: null
+  },
+  "team-b-verify": {
+    status: "ok", workflow: "07_test_team_b.yml", run_at: "2025-05-25T15:46:25",
+    data: { "DeepSeek R1호출": "성공", "병렬실행확인": "성공", "공매도체크": "이상없음", "DART리스크": "이상없음", "소요시간": "2,890ms" }, error: null
+  },
+  "team-b-final": {
+    status: "ok", workflow: "07_test_team_b.yml", run_at: "2025-05-25T15:46:26",
+    data: { "Gemini결정": "매수", "R1검증결과": "승인", "최종판단": "매수집행", "거절케이스테스트": "성공" }, error: null
+  },
+  "team-b-json": {
+    status: "ok", workflow: "07_test_team_b.yml", run_at: "2025-05-25T15:46:27",
+    data: { "action필드": "성공", "ticker필드": "성공", "confidence필드": "성공", "quantity필드": "성공", "target_price필드": "성공" }, error: null
+  }
+};
+
+// ─────────────────────────────────────────
+// 렌더링
+// ─────────────────────────────────────────
+function addLog(msg, type='') {
+  const body = document.getElementById('logBody');
+  const line = document.createElement('div');
+  line.className = 'log-line' + (type ? ' '+type : '');
+  const t = new Date().toLocaleTimeString('ko-KR',{hour12:false});
+  line.textContent = `[${t}] ${msg}`;
+  body.appendChild(line);
+  body.scrollTop = body.scrollHeight;
+}
+
+function valClass(v) {
+  const s = String(v);
+  if (s.includes('성공') || s.includes('OK') || s.includes('이상없음') || s.includes('승인')) return 'ok';
+  if (s.includes('실패') || s.includes('ERR') || s.includes('오류') || s.includes('거절')) return 'fail';
+  if (s.includes('대기') || s.includes('—')) return 'warn';
+  return '';
+}
+
+function buildCard(def, result) {
+  const isOk = result && result.status === 'ok';
+  const hasFail = result && result.status === 'fail';
+  const statusClass = !result ? 'pending' : (isOk ? 'ok' : 'fail');
+  const badgeClass  = !result ? 'badge-pending' : (isOk ? 'badge-ok' : 'badge-fail');
+  const badgeText   = !result ? '대기' : (isOk ? '정상' : '실패');
+  const dotClass    = !result ? '' : (isOk ? 'ok' : 'fail');
+
+  let bodyHtml = '';
+  if (!result) {
+    bodyHtml = '<div class="result-empty">GitHub Actions 실행 결과 대기중</div>';
+  } else if (result.data && Object.keys(result.data).length > 0) {
+    bodyHtml = Object.entries(result.data).map(([k,v]) =>
+      `<div class="result-row">
+        <span class="result-key">${k}</span>
+        <span class="result-val ${valClass(v)}">${v}</span>
+      </div>`
+    ).join('');
+    if (hasFail && result.error) {
+      bodyHtml += `<div class="error-box">✗ ${result.error}</div>`;
+    }
+  } else {
+    bodyHtml = '<div class="result-empty">데이터 없음</div>';
+  }
+
+  const runAt = result && result.run_at
+    ? new Date(result.run_at).toLocaleString('ko-KR',{hour12:false})
+    : '—';
+  const wfText = result ? result.workflow || '—' : '—';
+  const logPath = def.log || '';
+  const logBtn = logPath
+    ? `<button class="log-btn" onclick="openLog('${logPath}')" title="${logPath}">로그 보기</button>`
+    : '';
+
+  return `
+    <div class="card status-${statusClass}">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="status-dot ${dotClass}"></div>
+          <div>
+            <div class="card-title">${def.title}</div>
+            <div class="card-sub">${def.sub}</div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          ${logBtn}
+          <span class="status-badge ${badgeClass}">${badgeText}</span>
+        </div>
+      </div>
+      <div class="card-body">${bodyHtml}</div>
+      <div class="card-footer">
+        <span class="footer-workflow">${wfText}</span>
+        <span class="footer-time">${runAt}</span>
+      </div>
+    </div>`;
+}
+
+function renderSection(section, data) {
+  const grid = document.getElementById('grid-' + section);
+  const count = document.getElementById('count-' + section);
+  const defs  = CARDS[section];
+  if (!grid) return;
+
+  grid.innerHTML = defs.map(def => buildCard(def, data[def.id])).join('');
+
+  const done = defs.filter(d => data[d.id]);
+  const ok   = done.filter(d => data[d.id].status === 'ok').length;
+  const fail = done.length - ok;
+
+  if (count) {
+    if (done.length === 0) {
+      count.textContent = '';
+    } else if (fail === 0 && done.length === defs.length) {
+      count.textContent = `${ok}/${defs.length} 통과`;
+      count.style.color = 'var(--green)';
+    } else {
+      count.textContent = `통과 ${ok} / 실패 ${fail} / 대기 ${defs.length - done.length}`;
+      count.style.color = fail > 0 ? 'var(--red)' : 'var(--amber)';
+    }
+  }
+}
+
+function render(data) {
+  if (data.updated_at) {
+    document.getElementById('lastUpdated').textContent =
+      '마지막 업데이트: ' + new Date(data.updated_at).toLocaleString('ko-KR',{hour12:false});
+  }
+
+  ['api','db','data','ai-a','ai-b'].forEach(s => renderSection(s, data));
+
+  const all = Object.values(CARDS).flat();
+  const done = all.filter(d => data[d.id]);
+  const ok   = done.filter(d => data[d.id].status === 'ok').length;
+  const fail = done.length - ok;
+  addLog(`렌더링 완료 — 총 ${done.length}개 결과 / 정상 ${ok} / 실패 ${fail}`, fail > 0 ? 'warn' : 'ok');
+}
+
+async function loadResults() {
+  addLog('results.json 로드 시도...', 'info');
+  try {
+    const res = await fetch('./results.json?t=' + Date.now());
+    if (!res.ok) throw new Error('파일 없음');
+    const data = await res.json();
+    addLog('results.json 로드 성공 (실제 데이터)', 'ok');
+    render(data);
+  } catch(e) {
+    addLog('results.json 없음 — 더미 데이터로 표시 중 (GitHub Actions 미실행)', 'warn');
+    render(DUMMY_RESULTS);
+  }
+}
+
+loadResults();
+setInterval(loadResults, 30000);
+</script>
+</body>
+</html>
