@@ -1,0 +1,225 @@
+name: 03 데이터 수신 테스트
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["02 API 연결 테스트"]
+    types: [completed]
+
+jobs:
+  test-data:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    env:
+      DART_API_KEY: ${{ secrets.DART_API_KEY }}
+      KIS_APP_KEY: ${{ secrets.KIS_APP_KEY }}
+      KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
+      KIS_BASE_URL: https://openapi.koreainvestment.com:9443
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 패키지 설치
+        run: pip install -r requirements.txt
+
+      - name: 실시간 현재가 테스트 (realtime)
+        id: test-realtime
+        run: |
+          python - << 'EOF'
+          import json, os, sys, time
+          from datetime import datetime
+
+          sys.path.insert(0, os.getcwd())
+          from data.realtime import get_current_price
+
+          ticker = "005930"
+          start = time.time()
+          try:
+              data = get_current_price(ticker)
+              latency = int((time.time() - start) * 1000)
+              ok = data.get("price", 0) > 0
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "03_test_data.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "종목": f"{data.get('name') or '삼성전자'}({ticker})",
+                      "현재가": f"{data.get('price', 0):,}원",
+                      "등락률": f"{data.get('change_rate', 0)}%",
+                      "거래량": f"{data.get('volume', 0):,}",
+                      "응답시간": f"{latency}ms",
+                  },
+                  "error": None,
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] realtime get_current_price: {data.get('price')} {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail",
+                  "workflow": "03_test_data.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "종목": f"삼성전자({ticker})",
+                      "현재가": "—",
+                      "등락률": "—",
+                      "거래량": "—",
+                      "응답시간": "—",
+                  },
+                  "error": str(e),
+              }
+              print(f"[FAIL] realtime: {e}")
+
+          with open("_realtime_result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: 수급 가집계 테스트 (supply)
+        id: test-supply
+        run: |
+          python - << 'EOF'
+          import json, os, sys, time
+          from datetime import datetime
+
+          sys.path.insert(0, os.getcwd())
+          from data.realtime import get_net_buy_aggregate
+
+          start = time.time()
+          try:
+              data = get_net_buy_aggregate()
+              latency = int((time.time() - start) * 1000)
+              foreign = data.get("foreign_net", 0)
+              institution = data.get("institution_net", 0)
+              ok = True
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "03_test_data.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "외국인순매수조회": "성공",
+                      "기관순매수조회": "성공",
+                      "외국인순매수": f"{foreign:,}",
+                      "기관순매수": f"{institution:,}",
+                      "응답시간": f"{latency}ms",
+                  },
+                  "error": None,
+              }
+              print(f"[OK] supply get_net_buy_aggregate: foreign={foreign} institution={institution} {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail",
+                  "workflow": "03_test_data.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "외국인순매수조회": "실패",
+                      "기관순매수조회": "실패",
+                      "외국인순매수": "—",
+                      "기관순매수": "—",
+                      "응답시간": "—",
+                  },
+                  "error": str(e),
+              }
+              print(f"[FAIL] supply: {e}")
+
+          with open("_supply_result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: 공시 수집 테스트 (disclosure)
+        id: test-disclosure
+        run: |
+          python - << 'EOF'
+          import json, os, sys, time
+          from datetime import datetime
+
+          sys.path.insert(0, os.getcwd())
+          from data.dart import get_disclosures_by_ticker
+
+          ticker = "005930"
+          start = time.time()
+          try:
+              items = get_disclosures_by_ticker(ticker, days=30)
+              latency = int((time.time() - start) * 1000)
+              ok = isinstance(items, list)
+              count = len(items)
+              latest = items[0]["title"][:40] if items else "—"
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "03_test_data.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "공시수집": "성공" if ok else "실패",
+                      "종목": f"삼성전자({ticker})",
+                      "조회건수": f"{count}건",
+                      "최근공시": latest,
+                      "응답시간": f"{latency}ms",
+                  },
+                  "error": None,
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] disclosure: {count}건 {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail",
+                  "workflow": "03_test_data.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "공시수집": "실패",
+                      "종목": f"삼성전자({ticker})",
+                      "조회건수": "—",
+                      "최근공시": "—",
+                      "응답시간": "—",
+                  },
+                  "error": str(e),
+              }
+              print(f"[FAIL] disclosure: {e}")
+
+          with open("_disclosure_result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: results.json 통합 업데이트
+        if: always()
+        run: |
+          python - << 'EOF'
+          import json, os
+          from datetime import datetime
+
+          try:
+              with open("results.json", "r", encoding="utf-8") as f:
+                  data = json.load(f)
+          except Exception:
+              data = {}
+
+          data["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+          mapping = {
+              "realtime": "_realtime_result.json",
+              "supply": "_supply_result.json",
+              "disclosure": "_disclosure_result.json",
+          }
+
+          for key, fname in mapping.items():
+              if os.path.exists(fname):
+                  with open(fname, "r", encoding="utf-8") as f:
+                      data[key] = json.load(f)
+                  os.remove(fname)
+
+          with open("results.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+
+          print("results.json 업데이트 완료")
+          EOF
+
+      - name: results.json 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add results.json
+          git diff --staged --quiet || git commit -m "ci: 03 데이터 수신 테스트 결과 업데이트"
+          git push

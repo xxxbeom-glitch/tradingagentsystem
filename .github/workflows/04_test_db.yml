@@ -1,0 +1,248 @@
+name: 04 DB 테스트
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["03 데이터 수신 테스트"]
+    types: [completed]
+
+jobs:
+  test-db:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 패키지 설치
+        run: pip install -r requirements.txt
+
+      - name: SQLite 연결 테스트 (db-connect)
+        id: test-db-connect
+        run: |
+          python - << 'EOF'
+          import json, os, sqlite3, time
+          from datetime import datetime
+
+          from init_db import init_db, DB_PATH
+
+          if os.path.exists(DB_PATH):
+              os.remove(DB_PATH)
+
+          start = time.time()
+          try:
+              init_db()
+              latency = int((time.time() - start) * 1000)
+              exists = os.path.exists(DB_PATH)
+              conn = sqlite3.connect(DB_PATH)
+              conn.execute("SELECT 1")
+              conn.close()
+              ok = exists
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "04_test_db.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "DB파일생성": "성공" if exists else "실패",
+                      "연결상태": "성공" if ok else "실패",
+                      "경로": DB_PATH,
+                      "응답시간": f"{latency}ms",
+                  },
+                  "error": None,
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] db-connect: {DB_PATH} {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail",
+                  "workflow": "04_test_db.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "DB파일생성": "실패",
+                      "연결상태": "실패",
+                      "경로": DB_PATH,
+                      "응답시간": "—",
+                  },
+                  "error": str(e),
+              }
+              print(f"[FAIL] db-connect: {e}")
+
+          with open("_db_connect_result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: 테이블 스키마 테스트 (db-schema)
+        id: test-db-schema
+        run: |
+          python - << 'EOF'
+          import json, os, sqlite3, time
+          from datetime import datetime
+
+          from init_db import DB_PATH
+
+          expected = [
+              "market_data",
+              "disclosure_data",
+              "trigger_log",
+              "ai_decision_log",
+              "portfolio",
+              "balance",
+          ]
+
+          start = time.time()
+          try:
+              conn = sqlite3.connect(DB_PATH)
+              cursor = conn.cursor()
+              cursor.execute(
+                  "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+              )
+              tables = {row[0] for row in cursor.fetchall()}
+              conn.close()
+              latency = int((time.time() - start) * 1000)
+
+              checks = {t: ("성공" if t in tables else "실패") for t in expected}
+              ok = all(v == "성공" for v in checks.values())
+
+              data = {f"{t}테이블": checks[t] for t in expected}
+              data["응답시간"] = f"{latency}ms"
+
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "04_test_db.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": data,
+                  "error": None if ok else f"누락 테이블: {', '.join(t for t in expected if t not in tables)}",
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] db-schema: {checks} {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail",
+                  "workflow": "04_test_db.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {f"{t}테이블": "—" for t in expected},
+                  "error": str(e),
+              }
+              print(f"[FAIL] db-schema: {e}")
+
+          with open("_db_schema_result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: DB 쓰기/읽기 테스트 (db-write)
+        id: test-db-write
+        run: |
+          python - << 'EOF'
+          import json, os, sqlite3, time
+          from datetime import datetime
+
+          from init_db import DB_PATH
+
+          now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+          ticker = "005930"
+          price = 70000
+
+          start = time.time()
+          try:
+              conn = sqlite3.connect(DB_PATH)
+              cursor = conn.cursor()
+              cursor.execute(
+                  """
+                  INSERT INTO market_data
+                      (collected_at, ticker, name, current_price, volume)
+                  VALUES (?, ?, ?, ?, ?)
+                  """,
+                  (now, ticker, "삼성전자", price, 1000),
+              )
+              conn.commit()
+              cursor.execute(
+                  """
+                  SELECT current_price, name FROM market_data
+                  WHERE ticker = ? ORDER BY id DESC LIMIT 1
+                  """,
+                  (ticker,),
+              )
+              row = cursor.fetchone()
+              conn.close()
+              latency = int((time.time() - start) * 1000)
+
+              ok = row is not None and row[0] == price and row[1] == "삼성전자"
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "04_test_db.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "INSERT테스트": "성공",
+                      "SELECT테스트": "성공" if row else "실패",
+                      "데이터일치여부": "성공" if ok else "실패",
+                      "저장가격": f"{row[0]:,}원" if row else "—",
+                      "소요시간": f"{latency}ms",
+                  },
+                  "error": None if ok else "INSERT/SELECT 데이터 불일치",
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] db-write: {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail",
+                  "workflow": "04_test_db.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "INSERT테스트": "실패",
+                      "SELECT테스트": "—",
+                      "데이터일치여부": "—",
+                      "저장가격": "—",
+                      "소요시간": "—",
+                  },
+                  "error": str(e),
+              }
+              print(f"[FAIL] db-write: {e}")
+
+          with open("_db_write_result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: results.json 통합 업데이트
+        if: always()
+        run: |
+          python - << 'EOF'
+          import json, os
+          from datetime import datetime
+
+          try:
+              with open("results.json", "r", encoding="utf-8") as f:
+                  data = json.load(f)
+          except Exception:
+              data = {}
+
+          data["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+          mapping = {
+              "db-connect": "_db_connect_result.json",
+              "db-schema": "_db_schema_result.json",
+              "db-write": "_db_write_result.json",
+          }
+
+          for key, fname in mapping.items():
+              if os.path.exists(fname):
+                  with open(fname, "r", encoding="utf-8") as f:
+                      data[key] = json.load(f)
+                  os.remove(fname)
+
+          with open("results.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+
+          print("results.json 업데이트 완료")
+          EOF
+
+      - name: results.json 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add results.json
+          git diff --staged --quiet || git commit -m "ci: 04 DB 테스트 결과 업데이트"
+          git push
