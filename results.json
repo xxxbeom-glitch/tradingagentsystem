@@ -1,16 +1,24 @@
 {
-  "updated_at": "2026-05-25T11:21:52",
+  "updated_at": "2026-05-25T11:31:11",
   "kis": {
-    "status": "fail",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:21:39",
+    "status": "ok",
+    "workflow": "01_check_env.yml",
+    "run_at": "2026-05-25T11:31:11",
     "data": {
-      "토큰발급": "실패",
-      "응답코드": "403",
-      "계좌번호확인": "성공",
-      "응답시간": "531ms"
+      "DART_API_KEY": "설정됨",
+      "DEEPSEEK_API_KEY": "설정됨",
+      "DEEPSEEK_BASE_URL": "설정됨",
+      "DEEPSEEK_MODEL": "설정됨",
+      "GEMINI_API_KEY": "설정됨",
+      "KIS_ACCOUNT_NO": "설정됨",
+      "KIS_APP_KEY": "설정됨",
+      "KIS_APP_SECRET": "설정됨",
+      "KRX_ID": "설정됨",
+      "KRX_PW": "설정됨",
+      "NAVER_CLIENT_ID": "설정됨",
+      "NAVER_CLIENT_SECRET": "설정됨"
     },
-    "error": "HTTP 403: {\"error_code\":\"EGW00133\",\"error_description\":\"접근토큰 발급 잠시 후 다시 시도하세요(1분당 1회)\"}"
+    "error": null
   },
   "dart": {
     "status": "fail",
