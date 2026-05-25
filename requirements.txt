@@ -1,0 +1,20 @@
+# 시장 데이터
+pykrx
+yfinance
+
+# 공시
+dart-fss
+
+# AI 엔진
+google-generativeai
+openai
+
+# 환경변수
+python-dotenv
+
+# HTTP 요청 (한투 API, 네이버 API)
+requests
+
+# 데이터 처리
+pandas
+numpy

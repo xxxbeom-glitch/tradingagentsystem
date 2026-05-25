@@ -1,0 +1,31 @@
+#!/bin/sh
+# Block pushing any commit that contains .env
+
+zero="0000000000000000000000000000000000000000"
+
+while read local_ref local_oid remote_ref remote_oid; do
+  if [ "$local_oid" = "$zero" ]; then
+    continue
+  fi
+
+  if [ "$remote_oid" = "$zero" ]; then
+    range="$local_oid"
+  else
+    range="$remote_oid..$local_oid"
+  fi
+
+  for file in $(git diff --name-only $range 2>/dev/null); do
+    case "$file" in
+      .env|.env.*)
+        echo "ERROR: Refusing to push — commit includes '$file'. Remove it from history."
+        exit 1
+        ;;
+      */.env|*/.env.*)
+        echo "ERROR: Refusing to push — commit includes '$file'. Remove it from history."
+        exit 1
+        ;;
+    esac
+  done
+done
+
+exit 0

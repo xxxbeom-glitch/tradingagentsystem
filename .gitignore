@@ -1,0 +1,44 @@
+# 환경변수 (절대 푸시 금지)
+.env
+.env.local
+.env.*.local
+
+# 가상환경
+venv/
+.venv/
+env/
+
+# Python 캐시
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# 로그 파일
+logs/
+*.log
+
+# 데이터 캐시 (수집된 임시 데이터)
+data/cache/
+data/temp/
+*.csv
+*.json
+
+# 수익률 기록 (로컬 전용)
+tracker/history/
+tracker/*.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 빌드
+dist/
+build/
+*.egg-info/

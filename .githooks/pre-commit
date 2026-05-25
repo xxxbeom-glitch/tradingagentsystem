@@ -1,0 +1,14 @@
+#!/bin/sh
+# Block committing .env (secrets must stay local)
+
+if git diff --cached --name-only | grep -qE '^\.env$|^\.env\.[^/]+$'; then
+  echo "ERROR: .env must not be committed. It is listed in .gitignore."
+  exit 1
+fi
+
+if git diff --cached --name-only | grep -qE '\.env$|\.env\.[^/]+$'; then
+  echo "ERROR: .env files must not be committed."
+  exit 1
+fi
+
+exit 0

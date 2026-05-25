@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Agent System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --surface2: #181c22;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8eaf0;
+    --text2: #8890a0;
+    --text3: #545c6a;
+    --green: #1fd67a;
+    --green-dim: rgba(31,214,122,0.1);
+    --red: #ff4d6a;
+    --red-dim: rgba(255,77,106,0.1);
+    --blue: #4d9fff;
+    --blue-dim: rgba(77,159,255,0.1);
+    --amber: #ffb84d;
+    --amber-dim: rgba(255,184,77,0.1);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.1);
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .mono { font-family: 'Space Mono', monospace; }
+
+  /* 헤더 */
+  header {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(10,12,15,0.95);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .logo-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text);
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .status-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(31,214,122,0.2);
+    letter-spacing: 0.06em;
+  }
+  .header-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  /* 메인 레이아웃 */
+  main {
+    padding: 28px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* 섹션 타이틀 */
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  /* 팀 그리드 */
+  .teams-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  /* 팀 카드 */
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .team-card:hover { border-color: var(--border2); }
+
+  .team-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .team-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .team-tag {
+    font-size: 10px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.06em;
+  }
+  .tag-speed {
+    background: var(--amber-dim);
+    color: var(--amber);
+    border: 1px solid rgba(255,184,77,0.2);
+  }
+  .tag-verify {
+    background: var(--purple-dim);
+    color: var(--purple);
+    border: 1px solid rgba(167,139,250,0.2);
+  }
+  .team-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .team-engines {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+  .team-pnl {
+    text-align: right;
+  }
+  .pnl-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .pnl-positive { color: var(--green); }
+  .pnl-negative { color: var(--red); }
+  .pnl-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 3px;
+  }
+
+  /* 시드 / 평가금액 행 */
+  .team-meta {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .meta-item {
+    flex: 1;
+    padding: 12px 20px;
+    border-right: 1px solid var(--border);
+  }
+  .meta-item:last-child { border-right: none; }
+  .meta-label {
+    font-size: 10px;
+    color: var(--text3);
+    margin-bottom: 4px;
+    letter-spacing: 0.04em;
+  }
+  .meta-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* 보유 종목 */
+  .holdings {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .holdings-label {
+    font-size: 10px;
+    color: var(--text3);
+    margin-bottom: 10px;
+    letter-spacing: 0.06em;
+  }
+  .holding-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .holding-row:last-child { border-bottom: none; }
+  .holding-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .holding-ticker {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    min-width: 70px;
+  }
+  .holding-name {
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .holding-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .holding-price {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    text-align: right;
+  }
+  .holding-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    min-width: 60px;
+    text-align: center;
+  }
+  .badge-up {
+    background: var(--green-dim);
+    color: var(--green);
+  }
+  .badge-down {
+    background: var(--red-dim);
+    color: var(--red);
+  }
+  .holding-weight {
+    font-size: 10px;
+    color: var(--text3);
+    min-width: 36px;
+    text-align: right;
+  }
+
+  /* 에이전트 상태 */
+  .agent-status {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+  .dot-active {
+    background: var(--green);
+    box-shadow: 0 0 5px var(--green);
+    animation: pulse 2s infinite;
+  }
+  .dot-wait {
+    background: var(--amber);
+  }
+  .status-text {
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .last-action {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* AI 판단 로그 */
+  .log-section {
+    padding: 14px 20px;
+  }
+  .log-label {
+    font-size: 10px;
+    color: var(--text3);
+    margin-bottom: 10px;
+    letter-spacing: 0.06em;
+  }
+  .log-entry {
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 6px;
+    border-left: 2px solid var(--border2);
+    margin-bottom: 8px;
+  }
+  .log-entry:last-child { margin-bottom: 0; }
+  .log-entry.entry-buy { border-left-color: var(--green); }
+  .log-entry.entry-sell { border-left-color: var(--red); }
+  .log-entry.entry-verify { border-left-color: var(--purple); }
+  .log-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    margin-bottom: 4px;
+  }
+  .log-text {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+  .log-text strong { color: var(--text); font-weight: 500; }
+
+  /* 하단 섹션 — 수익률 차트 + 회차 비교 */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* 기간별 수익률 차트 */
+  .chart-wrap {
+    position: relative;
+    height: 220px;
+  }
+
+  /* 회차 비교 테이블 */
+  .rounds-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .rounds-table th {
+    font-size: 10px;
+    color: var(--text3);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    padding: 0 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .rounds-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .rounds-table tr:last-child td { border-bottom: none; }
+  .round-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .round-date {
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .round-pnl {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .win-badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+  }
+  .win-a { background: var(--amber-dim); color: var(--amber); }
+  .win-b { background: var(--purple-dim); color: var(--purple); }
+  .win-tie { background: rgba(255,255,255,0.04); color: var(--text3); }
+  .in-progress {
+    font-size: 10px;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* 누적 요약 바 */
+  .summary-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .summary-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .summary-label {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .summary-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .summary-sub {
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  /* 반응형 */
+  @media (max-width: 900px) {
+    .teams-grid, .bottom-grid { grid-template-columns: 1fr; }
+    .summary-bar { grid-template-columns: 1fr 1fr; }
+    main { padding: 20px 16px; }
+    header { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <span class="logo-text">TRADING AGENT SYSTEM</span>
+  </div>
+  <div class="header-right">
+    <span class="status-badge">▶ 장중 감시중</span>
+    <span class="header-time mono" id="clock">--:--:--</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- 누적 요약 -->
+  <div class="section-label">누적 성과 요약</div>
+  <div class="summary-bar">
+    <div class="summary-item">
+      <div class="summary-label">팀 A 누적 수익률</div>
+      <div class="summary-value pnl-positive">+6.8%</div>
+      <div class="summary-sub">시드 500,000원 기준</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">팀 B 누적 수익률</div>
+      <div class="summary-value pnl-positive">+9.2%</div>
+      <div class="summary-sub">시드 500,000원 기준</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">총 진행 회차</div>
+      <div class="summary-value" style="color:var(--text);">5회</div>
+      <div class="summary-sub">팀 B 3승 / 팀 A 2승</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">현재 라운드</div>
+      <div class="summary-value" style="color:var(--amber);">6회차</div>
+      <div class="summary-sub">진행중 — 5/25 시작</div>
+    </div>
+  </div>
+
+  <!-- 팀 카드 -->
+  <div class="section-label">에이전트 현황</div>
+  <div class="teams-grid">
+
+    <!-- 팀 A -->
+    <div class="team-card">
+      <div class="team-header">
+        <div>
+          <div class="team-name-row">
+            <span class="team-tag tag-speed">SPEED</span>
+            <span class="team-name">팀 A</span>
+          </div>
+          <div class="team-engines">Gemini Flash 2.0 → DeepSeek V3</div>
+        </div>
+        <div class="team-pnl">
+          <div class="pnl-value pnl-positive">+3.4%</div>
+          <div class="pnl-sub">이번 회차</div>
+        </div>
+      </div>
+
+      <div class="team-meta">
+        <div class="meta-item">
+          <div class="meta-label">시드머니</div>
+          <div class="meta-value">500,000원</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">현재 평가금액</div>
+          <div class="meta-value" style="color:var(--green);">517,000원</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">가용 현금</div>
+          <div class="meta-value">72,000원</div>
+        </div>
+      </div>
+
+      <div class="holdings">
+        <div class="holdings-label">보유 종목</div>
+        <div class="holding-row">
+          <div class="holding-left">
+            <div>
+              <div class="holding-ticker">에코프로</div>
+              <div class="holding-name">매수가 82,400원</div>
+            </div>
+          </div>
+          <div class="holding-right">
+            <div class="holding-price">현재 87,600원<br><span style="font-size:10px;color:var(--text3)">+6.3%</span></div>
+            <div class="holding-badge badge-up">+6.3%</div>
+            <div class="holding-weight">45%</div>
+          </div>
+        </div>
+        <div class="holding-row">
+          <div class="holding-left">
+            <div>
+              <div class="holding-ticker">한화시스템</div>
+              <div class="holding-name">매수가 21,050원</div>
+            </div>
+          </div>
+          <div class="holding-right">
+            <div class="holding-price">현재 21,350원<br><span style="font-size:10px;color:var(--text3)">+1.4%</span></div>
+            <div class="holding-badge badge-up">+1.4%</div>
+            <div class="holding-weight">41%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="agent-status">
+        <div class="status-row">
+          <div class="status-dot dot-active"></div>
+          <span class="status-text">트리거 감시중</span>
+        </div>
+        <span class="last-action">마지막 판단 10:47</span>
+      </div>
+
+      <div class="log-section">
+        <div class="log-label">AI 판단 로그</div>
+        <div class="log-entry entry-buy">
+          <div class="log-time">10:47 — DeepSeek V3 매수 결정</div>
+          <div class="log-text">거래량 <strong>340%</strong> 급등 + 기관 순매수 전환 감지. 에코프로 2차전지 테마 강세 지속 판단 → <strong>즉시 매수 집행</strong></div>
+        </div>
+        <div class="log-entry">
+          <div class="log-time">09:31 — Gemini Flash 스캔 완료</div>
+          <div class="log-text">방산 / 2차전지 섹터 자금 집중 확인. 외국인 순매수 상위 5종목 후보 풀 구성</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 팀 B -->
+    <div class="team-card">
+      <div class="team-header">
+        <div>
+          <div class="team-name-row">
+            <span class="team-tag tag-verify">VERIFY</span>
+            <span class="team-name">팀 B</span>
+          </div>
+          <div class="team-engines">Gemini Pro 2.5 → DeepSeek R1</div>
+        </div>
+        <div class="team-pnl">
+          <div class="pnl-value pnl-positive">+1.9%</div>
+          <div class="pnl-sub">이번 회차</div>
+        </div>
+      </div>
+
+      <div class="team-meta">
+        <div class="meta-item">
+          <div class="meta-label">시드머니</div>
+          <div class="meta-value">500,000원</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">현재 평가금액</div>
+          <div class="meta-value" style="color:var(--green);">509,500원</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">가용 현금</div>
+          <div class="meta-value">158,000원</div>
+        </div>
+      </div>
+
+      <div class="holdings">
+        <div class="holdings-label">보유 종목</div>
+        <div class="holding-row">
+          <div class="holding-left">
+            <div>
+              <div class="holding-ticker">LG에너지솔루션</div>
+              <div class="holding-name">매수가 342,000원</div>
+            </div>
+          </div>
+          <div class="holding-right">
+            <div class="holding-price">현재 349,500원<br><span style="font-size:10px;color:var(--text3)">+2.2%</span></div>
+            <div class="holding-badge badge-up">+2.2%</div>
+            <div class="holding-weight">34%</div>
+          </div>
+        </div>
+        <div class="holding-row">
+          <div class="holding-left">
+            <div>
+              <div class="holding-ticker">현대로템</div>
+              <div class="holding-name">매수가 58,700원</div>
+            </div>
+          </div>
+          <div class="holding-right">
+            <div class="holding-price">현재 57,400원<br><span style="font-size:10px;color:var(--text3)">-2.2%</span></div>
+            <div class="holding-badge badge-down">-2.2%</div>
+            <div class="holding-weight">32%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="agent-status">
+        <div class="status-row">
+          <div class="status-dot dot-wait"></div>
+          <span class="status-text">검증 대기중</span>
+        </div>
+        <span class="last-action">마지막 판단 11:02</span>
+      </div>
+
+      <div class="log-section">
+        <div class="log-label">AI 판단 로그</div>
+        <div class="log-entry entry-verify">
+          <div class="log-time">11:02 — DeepSeek R1 검증 통과</div>
+          <div class="log-text">후보 3종목 반론 검토 완료. <strong>현대로템 공매도 잔고 증가</strong> 주의 기록 후 조건부 승인. LG에너지솔루션 수급 이상 없음 → <strong>매수 집행</strong></div>
+        </div>
+        <div class="log-entry entry-sell" style="border-left-color:var(--red)">
+          <div class="log-time">10:55 — DeepSeek R1 1종목 거절</div>
+          <div class="log-text"><strong>포스코퓨처엠</strong> — DART 최근 공시 주의 항목 발견. 매수 거절 처리</div>
+        </div>
+        <div class="log-entry">
+          <div class="log-time">10:30 — Gemini Pro 2.5 분석 완료</div>
+          <div class="log-text">수급·차트·뉴스 종합 후 4종목 후보 풀 전달. 방산 테마 외국인 3일 연속 순매수 확인</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 수익률 차트 + 회차 비교 -->
+  <div class="section-label">기간별 수익률 및 회차 비교</div>
+  <div class="bottom-grid">
+
+    <!-- 수익률 라인 차트 -->
+    <div class="card">
+      <div class="card-title">누적 수익률 추이</div>
+      <div style="display:flex;gap:16px;margin-bottom:14px;">
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)">
+          <span style="width:20px;height:2px;background:var(--amber);display:inline-block;border-radius:2px"></span>
+          팀 A (스피드)
+        </span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)">
+          <span style="width:20px;height:2px;background:var(--purple);display:inline-block;border-radius:2px;border-top:2px dashed var(--purple);height:0"></span>
+          팀 B (검증)
+        </span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="returnsChart" role="img" aria-label="팀 A와 팀 B의 회차별 누적 수익률 비교 차트"></canvas>
+      </div>
+    </div>
+
+    <!-- 회차별 비교 -->
+    <div class="card">
+      <div class="card-title">회차별 결과</div>
+      <table class="rounds-table">
+        <thead>
+          <tr>
+            <th>회차</th>
+            <th>날짜</th>
+            <th>팀 A</th>
+            <th>팀 B</th>
+            <th>승</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="round-num">#1</span></td>
+            <td><span class="round-date">5/12</span></td>
+            <td><span class="round-pnl pnl-positive">+4.6%</span></td>
+            <td><span class="round-pnl pnl-positive">+2.1%</span></td>
+            <td><span class="win-badge win-a">A</span></td>
+          </tr>
+          <tr>
+            <td><span class="round-num">#2</span></td>
+            <td><span class="round-date">5/14</span></td>
+            <td><span class="round-pnl pnl-negative">-1.2%</span></td>
+            <td><span class="round-pnl pnl-positive">+3.4%</span></td>
+            <td><span class="win-badge win-b">B</span></td>
+          </tr>
+          <tr>
+            <td><span class="round-num">#3</span></td>
+            <td><span class="round-date">5/16</span></td>
+            <td><span class="round-pnl pnl-positive">+2.1%</span></td>
+            <td><span class="round-pnl pnl-positive">+1.8%</span></td>
+            <td><span class="win-badge win-a">A</span></td>
+          </tr>
+          <tr>
+            <td><span class="round-num">#4</span></td>
+            <td><span class="round-date">5/20</span></td>
+            <td><span class="round-pnl pnl-positive">+1.3%</span></td>
+            <td><span class="round-pnl pnl-positive">+1.9%</span></td>
+            <td><span class="win-badge win-b">B</span></td>
+          </tr>
+          <tr>
+            <td><span class="round-num">#5</span></td>
+            <td><span class="round-date">5/22</span></td>
+            <td><span class="round-pnl pnl-negative">-0.8%</span></td>
+            <td><span class="round-pnl pnl-positive">+0.0%</span></td>
+            <td><span class="win-badge win-b">B</span></td>
+          </tr>
+          <tr>
+            <td><span class="round-num">#6</span></td>
+            <td><span class="round-date">5/25</span></td>
+            <td><span class="round-pnl pnl-positive">+3.4%</span></td>
+            <td><span class="round-pnl pnl-positive">+1.9%</span></td>
+            <td><span class="in-progress">진행중…</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+  // 시계
+  function tick() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // 수익률 차트
+  const ctx = document.getElementById('returnsChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['시작', '1회차', '2회차', '3회차', '4회차', '5회차', '현재'],
+      datasets: [
+        {
+          label: '팀 A',
+          data: [0, 4.6, 3.3, 5.5, 6.9, 6.0, 6.8],
+          borderColor: '#ffb84d',
+          backgroundColor: 'rgba(255,184,77,0.06)',
+          borderWidth: 2,
+          pointBackgroundColor: '#ffb84d',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: '팀 B',
+          data: [0, 2.1, 5.6, 7.5, 9.5, 9.5, 9.2],
+          borderColor: '#a78bfa',
+          backgroundColor: 'rgba(167,139,250,0.06)',
+          borderWidth: 2,
+          borderDash: [5, 3],
+          pointBackgroundColor: '#a78bfa',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#181c22',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          titleColor: '#8890a0',
+          bodyColor: '#e8eaf0',
+          callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%'
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#545c6a', font: { size: 11 } },
+          border: { color: 'rgba(255,255,255,0.07)' }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#545c6a',
+            font: { size: 11 },
+            callback: v => v.toFixed(1) + '%'
+          },
+          border: { color: 'rgba(255,255,255,0.07)' }
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>
