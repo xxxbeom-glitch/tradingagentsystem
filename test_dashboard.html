@@ -217,101 +217,8 @@ const CARDS = {
   ]
 };
 
-// ─────────────────────────────────────────
-// 더미 데이터 (GitHub Actions 실행 전 미리보기용)
-// 실제 운용 시 results.json 파일로 교체됨
-// ─────────────────────────────────────────
-const DUMMY_RESULTS = {
-  updated_at: "2025-05-25T15:47:23",
-  kis: {
-    status: "ok", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:10",
-    data: { "토큰발급": "성공", "응답코드": "200", "계좌번호확인": "성공", "응답시간": "287ms" }, error: null
-  },
-  dart: {
-    status: "ok", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:12",
-    data: { "API키확인": "성공", "공시조회테스트": "성공", "오늘공시건수": "43건", "응답시간": "412ms" }, error: null
-  },
-  gemini: {
-    status: "ok", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:14",
-    data: { "모델": "gemini-2.5-flash", "연결상태": "성공", "응답테스트": "성공", "응답시간": "1,243ms" }, error: null
-  },
-  deepseek: {
-    status: "fail", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:16",
-    data: { "API키확인": "성공", "연결시도": "실패" },
-    error: "ConnectionError: Max retries exceeded. DeepSeek API 서버 응답 없음 (timeout 10s)"
-  },
-  naver: {
-    status: "ok", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:18",
-    data: { "CLIENT_ID확인": "성공", "뉴스검색테스트": "성공", "검색결과": "10건", "응답시간": "198ms" }, error: null
-  },
-  pykrx: {
-    status: "ok", workflow: "02_test_api.yml", run_at: "2025-05-25T15:45:20",
-    data: { "라이브러리로드": "성공", "코스피조회": "성공", "코스닥조회": "성공", "응답시간": "876ms" }, error: null
-  },
-  "db-connect": {
-    status: "ok", workflow: "04_test_db.yml", run_at: "2025-05-25T15:45:30",
-    data: { "DB파일생성": "성공", "연결상태": "성공", "경로": "trading_agent.db" }, error: null
-  },
-  "db-write": {
-    status: "ok", workflow: "04_test_db.yml", run_at: "2025-05-25T15:45:31",
-    data: { "INSERT테스트": "성공", "SELECT테스트": "성공", "데이터일치여부": "성공", "소요시간": "12ms" }, error: null
-  },
-  "db-schema": {
-    status: "fail", workflow: "04_test_db.yml", run_at: "2025-05-25T15:45:32",
-    data: { "시장데이터테이블": "성공", "공시데이터테이블": "성공", "트리거기록테이블": "실패", "AI판단테이블": "대기", "포트폴리오테이블": "대기", "잔고현황테이블": "대기" },
-    error: "OperationalError: table trigger_log already exists (스키마 충돌)"
-  },
-  realtime: {
-    status: "ok", workflow: "03_test_data.yml", run_at: "2025-05-25T15:45:40",
-    data: { "웹소켓연결": "성공", "TR_ID": "H0STCNT0", "수신종목": "삼성전자(005930)", "현재가": "73,400원", "체결시간": "15:44:58" }, error: null
-  },
-  supply: {
-    status: "ok", workflow: "03_test_data.yml", run_at: "2025-05-25T15:45:42",
-    data: { "외국인순매수조회": "성공", "기관순매수조회": "성공", "외국인1위": "삼성전자 +1,240억", "기관1위": "SK하이닉스 +890억" }, error: null
-  },
-  disclosure: {
-    status: "ok", workflow: "03_test_data.yml", run_at: "2025-05-25T15:45:44",
-    data: { "공시수집": "성공", "오늘공시건수": "43건", "긍정분류": "12건", "부정분류": "8건", "중립분류": "23건" }, error: null
-  },
-  trigger: {
-    status: "fail", workflow: "05_test_trigger.yml", run_at: "2025-05-25T15:46:00",
-    data: { "거래량급등감지": "성공", "기관순매수감지": "성공", "외국인연속감지": "실패", "업종등락감지": "대기" },
-    error: "AttributeError: 'NoneType' object has no attribute 'consecutive_days' — 외국인 연속 순매수 계산 로직 오류"
-  },
-  "team-a-collect": {
-    status: "ok", workflow: "06_test_team_a.yml", run_at: "2025-05-25T15:46:10",
-    data: { "Gemini Flash호출": "성공", "분석결과수신": "성공", "섹터스캔": "성공", "후보종목수": "6종목", "소요시간": "2,341ms" }, error: null
-  },
-  "team-a-decision": {
-    status: "ok", workflow: "06_test_team_a.yml", run_at: "2025-05-25T15:46:13",
-    data: { "DeepSeek R1호출": "성공", "종목결정": "성공", "선정종목": "에코프로(086520)", "확신도": "HIGH", "소요시간": "2,480ms" }, error: null
-  },
-  "team-a-json": {
-    status: "fail", workflow: "06_test_team_a.yml", run_at: "2025-05-25T15:46:14",
-    data: { "action필드": "성공", "ticker필드": "성공", "confidence필드": "성공", "quantity필드": "실패", "target_price필드": "대기" },
-    error: "JSONDecodeError: quantity 필드 누락 — AI 응답에 수량 정보 없음"
-  },
-  "team-b-collect": {
-    status: "ok", workflow: "07_test_team_b.yml", run_at: "2025-05-25T15:46:20",
-    data: { "DeepSeek V3호출": "성공", "분석결과수신": "성공", "후보종목수": "4종목", "소요시간": "3,214ms" }, error: null
-  },
-  "team-b-decision": {
-    status: "ok", workflow: "07_test_team_b.yml", run_at: "2025-05-25T15:46:24",
-    data: { "Gemini Pro호출": "성공", "종목결정": "성공", "선정종목": "LG에너지솔루션(373220)", "확신도": "MEDIUM", "소요시간": "3,102ms" }, error: null
-  },
-  "team-b-verify": {
-    status: "ok", workflow: "07_test_team_b.yml", run_at: "2025-05-25T15:46:25",
-    data: { "DeepSeek R1호출": "성공", "병렬실행확인": "성공", "공매도체크": "이상없음", "DART리스크": "이상없음", "소요시간": "2,890ms" }, error: null
-  },
-  "team-b-final": {
-    status: "ok", workflow: "07_test_team_b.yml", run_at: "2025-05-25T15:46:26",
-    data: { "Gemini결정": "매수", "R1검증결과": "승인", "최종판단": "매수집행", "거절케이스테스트": "성공" }, error: null
-  },
-  "team-b-json": {
-    status: "ok", workflow: "07_test_team_b.yml", run_at: "2025-05-25T15:46:27",
-    data: { "action필드": "성공", "ticker필드": "성공", "confidence필드": "성공", "quantity필드": "성공", "target_price필드": "성공" }, error: null
-  }
-};
+// results.json 초기 상태 (GitHub Actions 실행 전)
+const EMPTY_RESULTS = { updated_at: null };
 
 // ─────────────────────────────────────────
 // 렌더링
@@ -434,14 +341,21 @@ function render(data) {
 async function loadResults() {
   addLog('results.json 로드 시도...', 'info');
   try {
-    const res = await fetch('./results.json?t=' + Date.now());
-    if (!res.ok) throw new Error('파일 없음');
+    const res = await fetch('https://raw.githubusercontent.com/xxxbeom-glitch/tradingagentsystem/main/results.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    addLog('results.json 로드 성공 (실제 데이터)', 'ok');
+    const hasResults = Object.keys(data).some(k => k !== 'updated_at');
+    if (data.updated_at) {
+      addLog('results.json 로드 성공 — ' + new Date(data.updated_at).toLocaleString('ko-KR',{hour12:false}), 'ok');
+    } else if (hasResults) {
+      addLog('results.json 로드 성공 (일부 결과)', 'ok');
+    } else {
+      addLog('results.json 로드 성공 — 테스트 결과 대기중', 'info');
+    }
     render(data);
   } catch(e) {
-    addLog('results.json 없음 — 더미 데이터로 표시 중 (GitHub Actions 미실행)', 'warn');
-    render(DUMMY_RESULTS);
+    addLog('results.json 로드 실패 — 초기 상태 표시 (' + e.message + '). file:// 이면 로컬 서버 사용 권장', 'warn');
+    render(EMPTY_RESULTS);
   }
 }
 
