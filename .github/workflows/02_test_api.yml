@@ -315,13 +315,21 @@ jobs:
               json.dump(result, f, ensure_ascii=False)
           EOF
 
-      - name: 임시 결과 통합 (_api_result.json)
+      - name: results.json 통합 업데이트
         if: always()
         run: |
           python - << 'EOF'
           import json, os
+          from datetime import datetime
 
-          data = {}
+          try:
+              with open("results.json", "r", encoding="utf-8") as f:
+                  data = json.load(f)
+          except Exception:
+              data = {}
+
+          data["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
           mapping = {
               "kis":      "_kis_result.json",
               "dart":     "_dart_result.json",
@@ -337,16 +345,18 @@ jobs:
                       data[key] = json.load(f)
                   os.remove(fname)
 
-          with open("_api_result.json", "w", encoding="utf-8") as f:
+          with open("results.json", "w", encoding="utf-8") as f:
               json.dump(data, f, ensure_ascii=False, indent=2)
 
-          print("_api_result.json 저장 완료")
+          print("results.json 업데이트 완료")
           EOF
 
-      - name: 임시 결과 업로드 (artifact)
+      - name: results.json 커밋
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-api-results
-          path: _api_result.json
-          if-no-files-found: warn
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git pull --rebase origin main
+          git add results.json
+          git diff --staged --quiet || git commit -m "ci: 02 API 연결 테스트 결과 업데이트"
+          git push
