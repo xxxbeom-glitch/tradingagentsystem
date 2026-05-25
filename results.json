@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-25T11:49:17",
+  "updated_at": "2026-05-25T12:04:29",
   "kis": {
     "status": "ok",
     "workflow": "01_check_env.yml",
@@ -124,19 +124,19 @@
   "db-connect": {
     "status": "ok",
     "workflow": "04_test_db.yml",
-    "run_at": "2026-05-25T11:45:37",
+    "run_at": "2026-05-25T12:04:29",
     "data": {
       "DB파일생성": "성공",
       "연결상태": "성공",
       "경로": "/home/runner/work/tradingagentsystem/tradingagentsystem/trading_agent.db",
-      "응답시간": "9ms"
+      "응답시간": "11ms"
     },
     "error": null
   },
   "db-schema": {
     "status": "ok",
     "workflow": "04_test_db.yml",
-    "run_at": "2026-05-25T11:45:37",
+    "run_at": "2026-05-25T12:04:29",
     "data": {
       "market_data테이블": "성공",
       "disclosure_data테이블": "성공",
@@ -151,7 +151,7 @@
   "db-write": {
     "status": "ok",
     "workflow": "04_test_db.yml",
-    "run_at": "2026-05-25T11:45:37",
+    "run_at": "2026-05-25T12:04:29",
     "data": {
       "INSERT테스트": "성공",
       "SELECT테스트": "성공",
