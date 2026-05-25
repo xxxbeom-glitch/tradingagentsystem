@@ -1,14 +1,22 @@
 {
-  "updated_at": "2026-05-25T11:16:04",
+  "updated_at": "2026-05-25T11:20:31",
   "kis": {
     "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:15:48",
+    "workflow": "01_check_env.yml",
+    "run_at": "2026-05-25T11:20:31",
     "data": {
-      "토큰발급": "성공",
-      "응답코드": "200",
-      "계좌번호확인": "성공",
-      "응답시간": "586ms"
+      "DART_API_KEY": "설정됨",
+      "DEEPSEEK_API_KEY": "설정됨",
+      "DEEPSEEK_BASE_URL": "설정됨",
+      "DEEPSEEK_MODEL": "설정됨",
+      "GEMINI_API_KEY": "설정됨",
+      "KIS_ACCOUNT_NO": "설정됨",
+      "KIS_APP_KEY": "설정됨",
+      "KIS_APP_SECRET": "설정됨",
+      "KRX_ID": "설정됨",
+      "KRX_PW": "설정됨",
+      "NAVER_CLIENT_ID": "설정됨",
+      "NAVER_CLIENT_SECRET": "설정됨"
     },
     "error": null
   },
