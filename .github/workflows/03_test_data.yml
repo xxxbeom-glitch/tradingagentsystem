@@ -29,46 +29,55 @@ jobs:
       - name: 패키지 설치
         run: pip install -r requirements.txt
 
-      - name: 실시간 현재가 테스트 (realtime)
-        id: test-realtime
+      - name: KIS 실시간·수급 테스트 (realtime / supply, 토큰 공유)
+        id: test-kis-data
         run: |
           python - << 'EOF'
           import json, os, sys, time
           from datetime import datetime
 
           sys.path.insert(0, os.getcwd())
-          from data.realtime import get_current_price
+          from data.realtime import KISClient
 
+          WF = "03_test_data.yml"
+          RUN_AT = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
           ticker = "005930"
+
+          client = KISClient()
+          print("[INFO] KISClient 단일 인스턴스 생성 — 토큰 1회 발급 후 재사용")
+
+          # --- realtime (현재가) ---
           start = time.time()
           try:
-              data = get_current_price(ticker)
+              data = client.get_current_price(ticker)
               latency = int((time.time() - start) * 1000)
               ok = data.get("price", 0) > 0
-              result = {
+              realtime_result = {
                   "status": "ok" if ok else "fail",
-                  "workflow": "03_test_data.yml",
-                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "workflow": WF,
+                  "run_at": RUN_AT,
                   "data": {
                       "종목": f"{data.get('name') or '삼성전자'}({ticker})",
                       "현재가": f"{data.get('price', 0):,}원",
                       "등락률": f"{data.get('change_rate', 0)}%",
                       "거래량": f"{data.get('volume', 0):,}",
+                      "토큰재사용": "성공",
                       "응답시간": f"{latency}ms",
                   },
                   "error": None,
               }
-              print(f"[{'OK' if ok else 'FAIL'}] realtime get_current_price: {data.get('price')} {latency}ms")
+              print(f"[{'OK' if ok else 'FAIL'}] realtime: {data.get('price')} {latency}ms")
           except Exception as e:
-              result = {
+              realtime_result = {
                   "status": "fail",
-                  "workflow": "03_test_data.yml",
-                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "workflow": WF,
+                  "run_at": RUN_AT,
                   "data": {
                       "종목": f"삼성전자({ticker})",
                       "현재가": "—",
                       "등락률": "—",
                       "거래량": "—",
+                      "토큰재사용": "—",
                       "응답시간": "—",
                   },
                   "error": str(e),
@@ -76,50 +85,41 @@ jobs:
               print(f"[FAIL] realtime: {e}")
 
           with open("_realtime_result.json", "w", encoding="utf-8") as f:
-              json.dump(result, f, ensure_ascii=False)
-          EOF
+              json.dump(realtime_result, f, ensure_ascii=False)
 
-      - name: 수급 가집계 테스트 (supply)
-        id: test-supply
-        run: |
-          python - << 'EOF'
-          import json, os, sys, time
-          from datetime import datetime
-
-          sys.path.insert(0, os.getcwd())
-          from data.realtime import get_net_buy_aggregate
-
+          # --- supply (수급 가집계, 동일 client) ---
           start = time.time()
           try:
-              data = get_net_buy_aggregate()
+              data = client.get_net_buy_aggregate()
               latency = int((time.time() - start) * 1000)
               foreign = data.get("foreign_net", 0)
               institution = data.get("institution_net", 0)
-              ok = True
-              result = {
-                  "status": "ok" if ok else "fail",
-                  "workflow": "03_test_data.yml",
-                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+              supply_result = {
+                  "status": "ok",
+                  "workflow": WF,
+                  "run_at": RUN_AT,
                   "data": {
                       "외국인순매수조회": "성공",
                       "기관순매수조회": "성공",
                       "외국인순매수": f"{foreign:,}",
                       "기관순매수": f"{institution:,}",
+                      "토큰재사용": "성공",
                       "응답시간": f"{latency}ms",
                   },
                   "error": None,
               }
-              print(f"[OK] supply get_net_buy_aggregate: foreign={foreign} institution={institution} {latency}ms")
+              print(f"[OK] supply: foreign={foreign} institution={institution} {latency}ms")
           except Exception as e:
-              result = {
+              supply_result = {
                   "status": "fail",
-                  "workflow": "03_test_data.yml",
-                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "workflow": WF,
+                  "run_at": RUN_AT,
                   "data": {
                       "외국인순매수조회": "실패",
                       "기관순매수조회": "실패",
                       "외국인순매수": "—",
                       "기관순매수": "—",
+                      "토큰재사용": "—",
                       "응답시간": "—",
                   },
                   "error": str(e),
@@ -127,7 +127,7 @@ jobs:
               print(f"[FAIL] supply: {e}")
 
           with open("_supply_result.json", "w", encoding="utf-8") as f:
-              json.dump(result, f, ensure_ascii=False)
+              json.dump(supply_result, f, ensure_ascii=False)
           EOF
 
       - name: 공시 수집 테스트 (disclosure)

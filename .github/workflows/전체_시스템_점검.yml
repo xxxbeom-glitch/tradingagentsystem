@@ -1,0 +1,726 @@
+name: 전체 시스템 점검
+
+on:
+  workflow_dispatch:
+
+jobs:
+  full-check:
+    runs-on: ubuntu-latest
+
+    env:
+      DART_API_KEY: ${{ secrets.DART_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      DEEPSEEK_BASE_URL: ${{ secrets.DEEPSEEK_BASE_URL }}
+      DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      KIS_ACCOUNT_NO: ${{ secrets.KIS_ACCOUNT_NO }}
+      KIS_APP_KEY: ${{ secrets.KIS_APP_KEY }}
+      KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
+      KRX_ID: ${{ secrets.KRX_ID }}
+      KRX_PW: ${{ secrets.KRX_PW }}
+      NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+      NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+      KIS_BASE_URL: https://openapi.koreainvestment.com:9443
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 패키지 설치
+        run: pip install -r requirements.txt
+
+      - name: 01 환경변수 체크
+        id: check-env
+        run: |
+          python - << 'EOF'
+          import os
+
+          keys = [
+              "DART_API_KEY", "DEEPSEEK_API_KEY", "DEEPSEEK_BASE_URL", "DEEPSEEK_MODEL",
+              "GEMINI_API_KEY", "KIS_ACCOUNT_NO", "KIS_APP_KEY", "KIS_APP_SECRET",
+              "KRX_ID", "KRX_PW", "NAVER_CLIENT_ID", "NAVER_CLIENT_SECRET",
+          ]
+          all_ok = True
+          for key in keys:
+              ok = len(os.environ.get(key, "")) > 0
+              print(f"[{'OK' if ok else 'FAIL'}] {key}")
+              if not ok:
+                  all_ok = False
+          if not all_ok:
+              exit(1)
+          print("환경변수 체크 통과")
+          EOF
+
+      - name: KIS API 토큰 발급 테스트
+        id: test-kis
+        run: |
+          python - << 'EOF'
+          import os, json, requests, time
+          from datetime import datetime
+
+          app_key = os.environ["KIS_APP_KEY"]
+          app_secret = os.environ["KIS_APP_SECRET"]
+          url = "https://openapi.koreainvestment.com:9443/oauth2/tokenP"
+
+          start = time.time()
+          try:
+              res = requests.post(url, json={
+                  "grant_type": "client_credentials",
+                  "appkey": app_key,
+                  "appsecret": app_secret
+              }, timeout=10)
+              latency = int((time.time() - start) * 1000)
+              ok = res.status_code == 200 and "access_token" in res.json()
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "토큰발급": "성공" if ok else "실패",
+                      "응답코드": str(res.status_code),
+                      "계좌번호확인": "성공" if os.environ.get("KIS_ACCOUNT_NO") else "누락",
+                      "응답시간": f"{latency}ms"
+                  },
+                  "error": None if ok else f"HTTP {res.status_code}: {res.text[:100]}"
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] KIS API 토큰 발급: {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail", "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {"토큰발급": "실패", "응답코드": "—", "계좌번호확인": "—", "응답시간": "—"},
+                  "error": str(e)
+              }
+              print(f"[FAIL] KIS API: {e}")
+
+          with open("_kis_result.json", "w") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: DART API 테스트
+        id: test-dart
+        run: |
+          python - << 'EOF'
+          import os, json, requests, time
+          from datetime import datetime, timedelta
+
+          api_key = os.environ["DART_API_KEY"]
+          url = "https://opendart.fss.or.kr/api/list.json"
+          today = datetime.now()
+          end_de = today.strftime("%Y%m%d")
+          bgn_de = (today - timedelta(days=30)).strftime("%Y%m%d")
+
+          start = time.time()
+          try:
+              res = requests.get(url, params={
+                  "crtfc_key": api_key,
+                  "bgn_de": bgn_de,
+                  "end_de": end_de,
+                  "page_count": 5
+              }, timeout=10)
+              latency = int((time.time() - start) * 1000)
+              data = res.json()
+              ok = res.status_code == 200 and data.get("status") == "000"
+              count = data.get("total_count", 0) if ok else 0
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "API키확인": "성공",
+                      "공시조회테스트": "성공" if ok else "실패",
+                      "조회기간": f"{bgn_de}~{end_de}",
+                      "기간내공시건수": f"{count}건",
+                      "응답시간": f"{latency}ms"
+                  },
+                  "error": None if ok else f"status: {data.get('status')} message: {data.get('message')}"
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] DART API: {count}건 {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail", "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {"API키확인": "성공", "공시조회테스트": "실패", "조회기간": f"{bgn_de}~{end_de}", "기간내공시건수": "—", "응답시간": "—"},
+                  "error": str(e)
+              }
+              print(f"[FAIL] DART API: {e}")
+
+          with open("_dart_result.json", "w") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: Gemini API 테스트
+        id: test-gemini
+        run: |
+          python - << 'EOF'
+          import os, json, time
+          from datetime import datetime
+          import google.generativeai as genai
+
+          api_key = os.environ["GEMINI_API_KEY"]
+          genai.configure(api_key=api_key)
+
+          start = time.time()
+          try:
+              model = genai.GenerativeModel("gemini-2.5-flash")
+              response = model.generate_content("ping")
+              latency = int((time.time() - start) * 1000)
+              ok = response and len(response.text) > 0
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "모델": "gemini-2.5-flash",
+                      "연결상태": "성공" if ok else "실패",
+                      "응답테스트": "성공" if ok else "실패",
+                      "응답시간": f"{latency}ms"
+                  },
+                  "error": None
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] Gemini API: {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail", "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {"모델": "gemini-2.5-flash", "연결상태": "실패", "응답테스트": "실패", "응답시간": "—"},
+                  "error": str(e)
+              }
+              print(f"[FAIL] Gemini API: {e}")
+
+          with open("_gemini_result.json", "w") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: DeepSeek API 테스트
+        id: test-deepseek
+        run: |
+          python - << 'EOF'
+          import os, json, time
+          from datetime import datetime
+          from openai import OpenAI
+
+          api_key = os.environ["DEEPSEEK_API_KEY"]
+          base_url = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+          model = os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
+
+          start = time.time()
+          try:
+              client = OpenAI(api_key=api_key, base_url=base_url)
+              response = client.chat.completions.create(
+                  model=model,
+                  messages=[{"role": "user", "content": "ping"}],
+                  max_tokens=100
+              )
+              latency = int((time.time() - start) * 1000)
+              ok = response and response.choices[0].message.content
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "모델": model,
+                      "연결상태": "성공" if ok else "실패",
+                      "응답테스트": "성공" if ok else "실패",
+                      "응답시간": f"{latency}ms"
+                  },
+                  "error": None
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] DeepSeek API: {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail", "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {"API키확인": "성공", "연결시도": "실패"},
+                  "error": str(e)
+              }
+              print(f"[FAIL] DeepSeek API: {e}")
+
+          with open("_deepseek_result.json", "w") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: Naver API 테스트
+        id: test-naver
+        run: |
+          python - << 'EOF'
+          import os, json, requests, time
+          from datetime import datetime
+
+          client_id = os.environ["NAVER_CLIENT_ID"]
+          client_secret = os.environ["NAVER_CLIENT_SECRET"]
+          url = "https://openapi.naver.com/v1/search/news.json"
+
+          start = time.time()
+          try:
+              res = requests.get(url,
+                  headers={"X-Naver-Client-Id": client_id, "X-Naver-Client-Secret": client_secret},
+                  params={"query": "코스닥", "display": 5},
+                  timeout=10
+              )
+              latency = int((time.time() - start) * 1000)
+              ok = res.status_code == 200
+              count = res.json().get("total", 0) if ok else 0
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "CLIENT_ID확인": "성공",
+                      "뉴스검색테스트": "성공" if ok else "실패",
+                      "검색결과": f"{count}건",
+                      "응답시간": f"{latency}ms"
+                  },
+                  "error": None if ok else f"HTTP {res.status_code}"
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] Naver API: {count}건 {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail", "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {"CLIENT_ID확인": "성공", "뉴스검색테스트": "실패", "검색결과": "—", "응답시간": "—"},
+                  "error": str(e)
+              }
+              print(f"[FAIL] Naver API: {e}")
+
+          with open("_naver_result.json", "w") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: pykrx 테스트
+        id: test-pykrx
+        run: |
+          python - << 'EOF'
+          import json, time
+          from datetime import datetime, timedelta
+
+          start = time.time()
+          try:
+              from pykrx import stock
+              today = datetime.now().strftime("%Y%m%d")
+              yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
+              df = stock.get_market_ohlcv_by_ticker(yesterday)
+              latency = int((time.time() - start) * 1000)
+              ok = df is not None and len(df) > 0
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "라이브러리로드": "성공",
+                      "코스피조회": "성공" if ok else "실패",
+                      "코스닥조회": "성공" if ok else "실패",
+                      "종목수": f"{len(df)}개" if ok else "—",
+                      "응답시간": f"{latency}ms"
+                  },
+                  "error": None if ok else "데이터 없음"
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] pykrx: {len(df) if ok else 0}개 {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail", "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {"라이브러리로드": "실패", "코스피조회": "—", "코스닥조회": "—", "응답시간": "—"},
+                  "error": str(e)
+              }
+              print(f"[FAIL] pykrx: {e}")
+
+          with open("_pykrx_result.json", "w") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+
+      - name: KIS 실시간·수급 테스트 (realtime / supply, 토큰 공유)
+        id: test-kis-data
+        run: |
+          python - << 'EOF'
+          import json, os, sys, time
+          from datetime import datetime
+
+          sys.path.insert(0, os.getcwd())
+          from data.realtime import KISClient
+
+          WF = "전체_시스템_점검.yml"
+          RUN_AT = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+          ticker = "005930"
+
+          client = KISClient()
+          print("[INFO] KISClient 단일 인스턴스 생성 — 토큰 1회 발급 후 재사용")
+
+          # --- realtime (현재가) ---
+          start = time.time()
+          try:
+              data = client.get_current_price(ticker)
+              latency = int((time.time() - start) * 1000)
+              ok = data.get("price", 0) > 0
+              realtime_result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": WF,
+                  "run_at": RUN_AT,
+                  "data": {
+                      "종목": f"{data.get('name') or '삼성전자'}({ticker})",
+                      "현재가": f"{data.get('price', 0):,}원",
+                      "등락률": f"{data.get('change_rate', 0)}%",
+                      "거래량": f"{data.get('volume', 0):,}",
+                      "토큰재사용": "성공",
+                      "응답시간": f"{latency}ms",
+                  },
+                  "error": None,
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] realtime: {data.get('price')} {latency}ms")
+          except Exception as e:
+              realtime_result = {
+                  "status": "fail",
+                  "workflow": WF,
+                  "run_at": RUN_AT,
+                  "data": {
+                      "종목": f"삼성전자({ticker})",
+                      "현재가": "—",
+                      "등락률": "—",
+                      "거래량": "—",
+                      "토큰재사용": "—",
+                      "응답시간": "—",
+                  },
+                  "error": str(e),
+              }
+              print(f"[FAIL] realtime: {e}")
+
+          with open("_realtime_result.json", "w", encoding="utf-8") as f:
+              json.dump(realtime_result, f, ensure_ascii=False)
+
+          # --- supply (수급 가집계, 동일 client) ---
+          start = time.time()
+          try:
+              data = client.get_net_buy_aggregate()
+              latency = int((time.time() - start) * 1000)
+              foreign = data.get("foreign_net", 0)
+              institution = data.get("institution_net", 0)
+              supply_result = {
+                  "status": "ok",
+                  "workflow": WF,
+                  "run_at": RUN_AT,
+                  "data": {
+                      "외국인순매수조회": "성공",
+                      "기관순매수조회": "성공",
+                      "외국인순매수": f"{foreign:,}",
+                      "기관순매수": f"{institution:,}",
+                      "토큰재사용": "성공",
+                      "응답시간": f"{latency}ms",
+                  },
+                  "error": None,
+              }
+              print(f"[OK] supply: foreign={foreign} institution={institution} {latency}ms")
+          except Exception as e:
+              supply_result = {
+                  "status": "fail",
+                  "workflow": WF,
+                  "run_at": RUN_AT,
+                  "data": {
+                      "외국인순매수조회": "실패",
+                      "기관순매수조회": "실패",
+                      "외국인순매수": "—",
+                      "기관순매수": "—",
+                      "토큰재사용": "—",
+                      "응답시간": "—",
+                  },
+                  "error": str(e),
+              }
+              print(f"[FAIL] supply: {e}")
+
+          with open("_supply_result.json", "w", encoding="utf-8") as f:
+              json.dump(supply_result, f, ensure_ascii=False)
+          EOF
+
+      - name: 공시 수집 테스트 (disclosure)
+        id: test-disclosure
+        run: |
+          python - << 'EOF'
+          import json, os, sys, time
+          from datetime import datetime
+
+          sys.path.insert(0, os.getcwd())
+          from data.dart import get_disclosures_by_ticker
+
+          ticker = "005930"
+          start = time.time()
+          try:
+              items = get_disclosures_by_ticker(ticker, days=30)
+              latency = int((time.time() - start) * 1000)
+              ok = isinstance(items, list)
+              count = len(items)
+              latest = items[0]["title"][:40] if items else "—"
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "공시수집": "성공" if ok else "실패",
+                      "종목": f"삼성전자({ticker})",
+                      "조회건수": f"{count}건",
+                      "최근공시": latest,
+                      "응답시간": f"{latency}ms",
+                  },
+                  "error": None,
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] disclosure: {count}건 {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "공시수집": "실패",
+                      "종목": f"삼성전자({ticker})",
+                      "조회건수": "—",
+                      "최근공시": "—",
+                      "응답시간": "—",
+                  },
+                  "error": str(e),
+              }
+              print(f"[FAIL] disclosure: {e}")
+
+          with open("_disclosure_result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+
+      - name: SQLite 연결 테스트 (db-connect)
+        id: test-db-connect
+        run: |
+          python - << 'EOF'
+          import json, os, sqlite3, time
+          from datetime import datetime
+
+          from init_db import init_db, DB_PATH
+
+          if os.path.exists(DB_PATH):
+              os.remove(DB_PATH)
+
+          start = time.time()
+          try:
+              init_db()
+              latency = int((time.time() - start) * 1000)
+              exists = os.path.exists(DB_PATH)
+              conn = sqlite3.connect(DB_PATH)
+              conn.execute("SELECT 1")
+              conn.close()
+              ok = exists
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "DB파일생성": "성공" if exists else "실패",
+                      "연결상태": "성공" if ok else "실패",
+                      "경로": DB_PATH,
+                      "응답시간": f"{latency}ms",
+                  },
+                  "error": None,
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] db-connect: {DB_PATH} {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "DB파일생성": "실패",
+                      "연결상태": "실패",
+                      "경로": DB_PATH,
+                      "응답시간": "—",
+                  },
+                  "error": str(e),
+              }
+              print(f"[FAIL] db-connect: {e}")
+
+          with open("_db_connect_result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: 테이블 스키마 테스트 (db-schema)
+        id: test-db-schema
+        run: |
+          python - << 'EOF'
+          import json, os, sqlite3, time
+          from datetime import datetime
+
+          from init_db import DB_PATH
+
+          expected = [
+              "market_data",
+              "disclosure_data",
+              "trigger_log",
+              "ai_decision_log",
+              "portfolio",
+              "balance",
+          ]
+
+          start = time.time()
+          try:
+              conn = sqlite3.connect(DB_PATH)
+              cursor = conn.cursor()
+              cursor.execute(
+                  "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+              )
+              tables = {row[0] for row in cursor.fetchall()}
+              conn.close()
+              latency = int((time.time() - start) * 1000)
+
+              checks = {t: ("성공" if t in tables else "실패") for t in expected}
+              ok = all(v == "성공" for v in checks.values())
+
+              data = {f"{t}테이블": checks[t] for t in expected}
+              data["응답시간"] = f"{latency}ms"
+
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": data,
+                  "error": None if ok else f"누락 테이블: {', '.join(t for t in expected if t not in tables)}",
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] db-schema: {checks} {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {f"{t}테이블": "—" for t in expected},
+                  "error": str(e),
+              }
+              print(f"[FAIL] db-schema: {e}")
+
+          with open("_db_schema_result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+      - name: DB 쓰기/읽기 테스트 (db-write)
+        id: test-db-write
+        run: |
+          python - << 'EOF'
+          import json, os, sqlite3, time
+          from datetime import datetime
+
+          from init_db import DB_PATH
+
+          now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+          ticker = "005930"
+          price = 70000
+
+          start = time.time()
+          try:
+              conn = sqlite3.connect(DB_PATH)
+              cursor = conn.cursor()
+              cursor.execute(
+                  """
+                  INSERT INTO market_data
+                      (collected_at, ticker, name, current_price, volume)
+                  VALUES (?, ?, ?, ?, ?)
+                  """,
+                  (now, ticker, "삼성전자", price, 1000),
+              )
+              conn.commit()
+              cursor.execute(
+                  """
+                  SELECT current_price, name FROM market_data
+                  WHERE ticker = ? ORDER BY id DESC LIMIT 1
+                  """,
+                  (ticker,),
+              )
+              row = cursor.fetchone()
+              conn.close()
+              latency = int((time.time() - start) * 1000)
+
+              ok = row is not None and row[0] == price and row[1] == "삼성전자"
+              result = {
+                  "status": "ok" if ok else "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "INSERT테스트": "성공",
+                      "SELECT테스트": "성공" if row else "실패",
+                      "데이터일치여부": "성공" if ok else "실패",
+                      "저장가격": f"{row[0]:,}원" if row else "—",
+                      "소요시간": f"{latency}ms",
+                  },
+                  "error": None if ok else "INSERT/SELECT 데이터 불일치",
+              }
+              print(f"[{'OK' if ok else 'FAIL'}] db-write: {latency}ms")
+          except Exception as e:
+              result = {
+                  "status": "fail",
+                  "workflow": "전체_시스템_점검.yml",
+                  "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                  "data": {
+                      "INSERT테스트": "실패",
+                      "SELECT테스트": "—",
+                      "데이터일치여부": "—",
+                      "저장가격": "—",
+                      "소요시간": "—",
+                  },
+                  "error": str(e),
+              }
+              print(f"[FAIL] db-write: {e}")
+
+          with open("_db_write_result.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False)
+          EOF
+
+
+      - name: results.json 통합 업데이트
+        if: always()
+        run: |
+          python - << 'EOF'
+          import json, os
+          from datetime import datetime
+
+          try:
+              with open("results.json", "r", encoding="utf-8") as f:
+                  data = json.load(f)
+          except Exception:
+              data = {}
+
+          data["updated_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+          mapping = {
+              "kis": "_kis_result.json",
+              "dart": "_dart_result.json",
+              "gemini": "_gemini_result.json",
+              "deepseek": "_deepseek_result.json",
+              "naver": "_naver_result.json",
+              "pykrx": "_pykrx_result.json",
+              "realtime": "_realtime_result.json",
+              "supply": "_supply_result.json",
+              "disclosure": "_disclosure_result.json",
+              "db-connect": "_db_connect_result.json",
+              "db-schema": "_db_schema_result.json",
+              "db-write": "_db_write_result.json",
+          }
+
+          for key, fname in mapping.items():
+              if os.path.exists(fname):
+                  with open(fname, "r", encoding="utf-8") as f:
+                      data[key] = json.load(f)
+                  os.remove(fname)
+
+          with open("results.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+
+          print("results.json 통합 완료")
+          EOF
+
+      - name: results.json 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git clean -fd results.json
+          git pull --rebase --autostash origin main
+          git add results.json
+          git diff --staged --quiet || git commit -m "ci: 전체 시스템 점검 결과 업데이트"
+          git push
