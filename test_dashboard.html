@@ -337,6 +337,33 @@ function renderSection(section, data) {
   }
 }
 
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+/** results.json updated_at은 UTC — Z 없으면 UTC로 파싱 */
+function parseUpdatedAtUtc(iso) {
+  if (!iso) return null;
+  const s = String(iso).trim();
+  if (/[Zz]$|[+-]\d{2}:?\d{2}$/.test(s)) return new Date(s);
+  const normalized = s.includes('T') ? s : s.replace(' ', 'T');
+  const d = new Date(normalized + 'Z');
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** 현재 시각·updated_at을 KST(UTC+9) 기준 ms로 맞춘 뒤 경과 시간(시간) */
+function getElapsedHoursKst(updatedAtIso) {
+  const updatedUtc = parseUpdatedAtUtc(updatedAtIso);
+  if (!updatedUtc) return null;
+  const nowKstMs = Date.now() + KST_OFFSET_MS;
+  const updatedKstMs = updatedUtc.getTime() + KST_OFFSET_MS;
+  return (nowKstMs - updatedKstMs) / 3600000;
+}
+
+function formatUpdatedAtKst(iso) {
+  const d = parseUpdatedAtUtc(iso);
+  if (!d) return '—';
+  return d.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false });
+}
+
 function formatStaleHours(hours) {
   const h = Math.round(hours * 10) / 10;
   return Number.isInteger(h) ? String(h) : h.toFixed(1);
@@ -349,7 +376,11 @@ function updateStaleBanner(data) {
     el.style.display = 'none';
     return;
   }
-  const hours = (Date.now() - new Date(data.updated_at).getTime()) / 3600000;
+  const hours = getElapsedHoursKst(data.updated_at);
+  if (hours == null) {
+    el.style.display = 'none';
+    return;
+  }
   if (hours < 1) {
     el.style.display = 'none';
     return;
@@ -368,7 +399,7 @@ function updateStaleBanner(data) {
 function render(data) {
   if (data.updated_at) {
     document.getElementById('lastUpdated').textContent =
-      '마지막 업데이트: ' + new Date(data.updated_at).toLocaleString('ko-KR',{hour12:false});
+      '마지막 업데이트: ' + formatUpdatedAtKst(data.updated_at) + ' (KST)';
   } else {
     document.getElementById('lastUpdated').textContent = '—';
   }
@@ -394,7 +425,7 @@ async function loadResults(silent = false) {
     const hasResults = Object.keys(data).some(k => k !== 'updated_at');
     if (!silent) {
       if (data.updated_at) {
-        addLog('results.json 로드 성공 — ' + new Date(data.updated_at).toLocaleString('ko-KR',{hour12:false}), 'ok');
+        addLog('results.json 로드 성공 — ' + formatUpdatedAtKst(data.updated_at) + ' (KST)', 'ok');
       } else if (hasResults) {
         addLog('results.json 로드 성공 (일부 결과)', 'ok');
       } else {
