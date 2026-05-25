@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-05-25T12:13:55",
+  "updated_at": "2026-05-25T12:31:08",
   "realtime": {
     "status": "fail",
-    "workflow": "03_test_data.yml",
-    "run_at": "2026-05-25T12:12:51",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:27:15",
     "data": {
       "종목": "삼성전자(005930)",
       "현재가": "—",
@@ -16,8 +16,8 @@
   },
   "supply": {
     "status": "fail",
-    "workflow": "03_test_data.yml",
-    "run_at": "2026-05-25T12:12:51",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:27:15",
     "data": {
       "외국인순매수조회": "실패",
       "기관순매수조회": "실패",
@@ -30,33 +30,33 @@
   },
   "disclosure": {
     "status": "ok",
-    "workflow": "03_test_data.yml",
-    "run_at": "2026-05-25T12:13:16",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:31:07",
     "data": {
       "공시수집": "성공",
       "종목": "삼성전자(005930)",
       "조회건수": "10건",
       "최근공시": "주식등의대량보유상황보고서(일반)",
-      "응답시간": "24025ms"
+      "응답시간": "229817ms"
     },
     "error": null
   },
   "db-connect": {
     "status": "ok",
-    "workflow": "04_test_db.yml",
-    "run_at": "2026-05-25T12:13:55",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:31:07",
     "data": {
       "DB파일생성": "성공",
       "연결상태": "성공",
       "경로": "/home/runner/work/tradingagentsystem/tradingagentsystem/trading_agent.db",
-      "응답시간": "7ms"
+      "응답시간": "8ms"
     },
     "error": null
   },
   "db-schema": {
     "status": "ok",
-    "workflow": "04_test_db.yml",
-    "run_at": "2026-05-25T12:13:55",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:31:08",
     "data": {
       "market_data테이블": "성공",
       "disclosure_data테이블": "성공",
@@ -70,8 +70,8 @@
   },
   "db-write": {
     "status": "ok",
-    "workflow": "04_test_db.yml",
-    "run_at": "2026-05-25T12:13:55",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:31:08",
     "data": {
       "INSERT테스트": "성공",
       "SELECT테스트": "성공",
@@ -83,75 +83,75 @@
   },
   "kis": {
     "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:12:00",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:27:01",
     "data": {
       "토큰발급": "성공",
       "응답코드": "200",
       "계좌번호확인": "성공",
-      "응답시간": "604ms"
+      "응답시간": "752ms"
     },
     "error": null
   },
   "dart": {
     "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:12:01",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:27:02",
     "data": {
       "API키확인": "성공",
       "공시조회테스트": "성공",
       "조회기간": "20260425~20260525",
       "기간내공시건수": "19066건",
-      "응답시간": "1303ms"
+      "응답시간": "1327ms"
     },
     "error": null
   },
   "gemini": {
     "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:12:03",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:27:05",
     "data": {
       "모델": "gemini-2.5-flash",
       "연결상태": "성공",
       "응답테스트": "성공",
-      "응답시간": "823ms"
+      "응답시간": "2082ms"
     },
     "error": null
   },
   "deepseek": {
     "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:12:07",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:27:10",
     "data": {
       "모델": "deepseek-chat",
       "연결상태": "성공",
       "응답테스트": "성공",
-      "응답시간": "1828ms"
+      "응답시간": "2217ms"
     },
     "error": null
   },
   "naver": {
     "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:12:08",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:27:11",
     "data": {
       "CLIENT_ID확인": "성공",
       "뉴스검색테스트": "성공",
       "검색결과": "3051437건",
-      "응답시간": "939ms"
+      "응답시간": "1119ms"
     },
     "error": null
   },
   "pykrx": {
     "status": "ok",
-    "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T12:12:12",
+    "workflow": "전체_시스템_점검.yml",
+    "run_at": "2026-05-25T12:27:15",
     "data": {
       "라이브러리로드": "성공",
       "코스피조회": "성공",
       "코스닥조회": "성공",
       "종목수": "948개",
-      "응답시간": "3578ms"
+      "응답시간": "4112ms"
     },
     "error": null
   }
