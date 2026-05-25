@@ -1,83 +1,75 @@
 {
-  "updated_at": "2026-05-25T11:20:58",
+  "updated_at": "2026-05-25T11:21:52",
   "kis": {
-    "status": "ok",
-    "workflow": "01_check_env.yml",
-    "run_at": "2026-05-25T11:20:58",
+    "status": "fail",
+    "workflow": "02_test_api.yml",
+    "run_at": "2026-05-25T11:21:39",
     "data": {
-      "DART_API_KEY": "설정됨",
-      "DEEPSEEK_API_KEY": "설정됨",
-      "DEEPSEEK_BASE_URL": "설정됨",
-      "DEEPSEEK_MODEL": "설정됨",
-      "GEMINI_API_KEY": "설정됨",
-      "KIS_ACCOUNT_NO": "설정됨",
-      "KIS_APP_KEY": "설정됨",
-      "KIS_APP_SECRET": "설정됨",
-      "KRX_ID": "설정됨",
-      "KRX_PW": "설정됨",
-      "NAVER_CLIENT_ID": "설정됨",
-      "NAVER_CLIENT_SECRET": "설정됨"
+      "토큰발급": "실패",
+      "응답코드": "403",
+      "계좌번호확인": "성공",
+      "응답시간": "531ms"
     },
-    "error": null
+    "error": "HTTP 403: {\"error_code\":\"EGW00133\",\"error_description\":\"접근토큰 발급 잠시 후 다시 시도하세요(1분당 1회)\"}"
   },
   "dart": {
     "status": "fail",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:15:49",
+    "run_at": "2026-05-25T11:21:40",
     "data": {
       "API키확인": "성공",
       "공시조회테스트": "실패",
       "오늘공시건수": "0건",
-      "응답시간": "788ms"
+      "응답시간": "762ms"
     },
     "error": "status: 013 message: 조회된 데이타가 없습니다."
   },
   "gemini": {
     "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:15:51",
+    "run_at": "2026-05-25T11:21:42",
     "data": {
       "모델": "gemini-2.5-flash",
       "연결상태": "성공",
       "응답테스트": "성공",
-      "응답시간": "884ms"
+      "응답시간": "1207ms"
     },
     "error": null
   },
   "deepseek": {
-    "status": "fail",
+    "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:15:59",
+    "run_at": "2026-05-25T11:21:47",
     "data": {
-      "모델": "deepseek-reasoner",
-      "연결상태": "실패",
-      "응답테스트": "실패",
-      "응답시간": "5308ms"
+      "모델": "deepseek-chat",
+      "연결상태": "성공",
+      "응답테스트": "성공",
+      "응답시간": "2492ms"
     },
     "error": null
   },
   "naver": {
     "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:16:00",
+    "run_at": "2026-05-25T11:21:48",
     "data": {
       "CLIENT_ID확인": "성공",
       "뉴스검색테스트": "성공",
       "검색결과": "3051436건",
-      "응답시간": "1097ms"
+      "응답시간": "940ms"
     },
     "error": null
   },
   "pykrx": {
     "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:16:04",
+    "run_at": "2026-05-25T11:21:52",
     "data": {
       "라이브러리로드": "성공",
       "코스피조회": "성공",
       "코스닥조회": "성공",
       "종목수": "948개",
-      "응답시간": "3942ms"
+      "응답시간": "3437ms"
     },
     "error": null
   }
