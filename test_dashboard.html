@@ -114,7 +114,19 @@
     transition: background 0.15s;
   }
   .log-btn:hover { background: rgba(77,159,255,0.15); }
-  @media (max-width: 768px) { main { padding: 20px 16px; } header { padding: 14px 16px; } .cards-grid { grid-template-columns: 1fr; } }
+  .stale-banner {
+    display: none; padding: 12px 32px; font-size: 14px; font-weight: 500;
+    text-align: center; letter-spacing: 0.02em;
+  }
+  .stale-banner.warn {
+    background: var(--amber-dim); color: var(--amber);
+    border-bottom: 1px solid rgba(255,184,77,0.25);
+  }
+  .stale-banner.critical {
+    background: var(--red-dim); color: var(--red);
+    border-bottom: 1px solid rgba(255,77,106,0.25);
+  }
+  @media (max-width: 768px) { main { padding: 20px 16px; } header { padding: 14px 16px; } .cards-grid { grid-template-columns: 1fr; } .stale-banner { padding: 10px 16px; font-size: 13px; } }
 </style>
 </head>
 <body>
@@ -129,6 +141,8 @@
     <span class="last-updated" id="lastUpdated">—</span>
   </div>
 </header>
+
+<div id="staleBanner" class="stale-banner"></div>
 
 <main>
 
@@ -323,11 +337,42 @@ function renderSection(section, data) {
   }
 }
 
+function formatStaleHours(hours) {
+  const h = Math.round(hours * 10) / 10;
+  return Number.isInteger(h) ? String(h) : h.toFixed(1);
+}
+
+function updateStaleBanner(data) {
+  const el = document.getElementById('staleBanner');
+  if (!el) return;
+  if (!data.updated_at) {
+    el.style.display = 'none';
+    return;
+  }
+  const hours = (Date.now() - new Date(data.updated_at).getTime()) / 3600000;
+  if (hours < 1) {
+    el.style.display = 'none';
+    return;
+  }
+  const n = formatStaleHours(hours);
+  el.style.display = 'block';
+  if (hours > 3) {
+    el.className = 'stale-banner critical';
+    el.textContent = `🔴 데이터가 오래되었습니다 (${n}시간 전). 액션을 실행해주세요.`;
+  } else {
+    el.className = 'stale-banner warn';
+    el.textContent = `⚠️ 데이터가 ${n}시간 전에 업데이트되었습니다`;
+  }
+}
+
 function render(data) {
   if (data.updated_at) {
     document.getElementById('lastUpdated').textContent =
       '마지막 업데이트: ' + new Date(data.updated_at).toLocaleString('ko-KR',{hour12:false});
+  } else {
+    document.getElementById('lastUpdated').textContent = '—';
   }
+  updateStaleBanner(data);
 
   ['api','db','data','ai-a','ai-b'].forEach(s => renderSection(s, data));
 
@@ -338,29 +383,35 @@ function render(data) {
   addLog(`렌더링 완료 — 총 ${done.length}개 결과 / 정상 ${ok} / 실패 ${fail}`, fail > 0 ? 'warn' : 'ok');
 }
 
-async function loadResults() {
-  addLog('results.json 로드 시도...', 'info');
+const REFRESH_INTERVAL_MS = 30000;
+
+async function loadResults(silent = false) {
+  if (!silent) addLog('results.json 로드 시도...', 'info');
   try {
     const res = await fetch('https://raw.githubusercontent.com/xxxbeom-glitch/tradingagentsystem/main/results.json?t=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const hasResults = Object.keys(data).some(k => k !== 'updated_at');
-    if (data.updated_at) {
-      addLog('results.json 로드 성공 — ' + new Date(data.updated_at).toLocaleString('ko-KR',{hour12:false}), 'ok');
-    } else if (hasResults) {
-      addLog('results.json 로드 성공 (일부 결과)', 'ok');
-    } else {
-      addLog('results.json 로드 성공 — 테스트 결과 대기중', 'info');
+    if (!silent) {
+      if (data.updated_at) {
+        addLog('results.json 로드 성공 — ' + new Date(data.updated_at).toLocaleString('ko-KR',{hour12:false}), 'ok');
+      } else if (hasResults) {
+        addLog('results.json 로드 성공 (일부 결과)', 'ok');
+      } else {
+        addLog('results.json 로드 성공 — 테스트 결과 대기중', 'info');
+      }
     }
     render(data);
   } catch(e) {
-    addLog('results.json 로드 실패 — 초기 상태 표시 (' + e.message + '). file:// 이면 로컬 서버 사용 권장', 'warn');
+    if (!silent) {
+      addLog('results.json 로드 실패 — 초기 상태 표시 (' + e.message + '). file:// 이면 로컬 서버 사용 권장', 'warn');
+    }
     render(EMPTY_RESULTS);
   }
 }
 
 loadResults();
-setInterval(loadResults, 30000);
+setInterval(() => loadResults(true), REFRESH_INTERVAL_MS);
 </script>
 </body>
 </html>
