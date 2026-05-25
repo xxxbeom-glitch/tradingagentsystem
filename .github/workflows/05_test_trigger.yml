@@ -1,0 +1,80 @@
+name: 05 트리거 조건 테스트
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-trigger:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 트리거 조건 테스트
+        run: |
+          python - << 'EOF'
+          import sys, os
+          sys.path.insert(0, os.getcwd())
+          from triggers.conditions import (
+              check_volume_surge,
+              check_institution_buy_turn,
+              check_foreign_consecutive_buy,
+              check_sector_top3,
+              check_52week_high,
+              count_triggers,
+          )
+
+          results = []
+          all_ok = True
+
+          # 1. 거래량 급증 (300% 이상 → True)
+          r = check_volume_surge("005930", 3000000, 900000)
+          ok = r["triggered"] == True and round(r["ratio"], 2) == 3.33
+          results.append(r)
+          print(f"[{'OK' if ok else 'FAIL'}] check_volume_surge: {r}")
+          if not ok: all_ok = False
+
+          # 2. 기관 순매수 전환 (음수→양수 → True)
+          r = check_institution_buy_turn("005930", 50000, -30000)
+          ok = r["triggered"] == True
+          results.append(r)
+          print(f"[{'OK' if ok else 'FAIL'}] check_institution_buy_turn: {r}")
+          if not ok: all_ok = False
+
+          # 3. 외국인 3일 연속 순매수 (모두 양수 → True)
+          r = check_foreign_consecutive_buy("005930", [100000, 200000, 150000])
+          ok = r["triggered"] == True
+          results.append(r)
+          print(f"[{'OK' if ok else 'FAIL'}] check_foreign_consecutive_buy: {r}")
+          if not ok: all_ok = False
+
+          # 4. 업종 상위 3위 (rank=2 → True)
+          r = check_sector_top3(2)
+          ok = r["triggered"] == True
+          results.append(r)
+          print(f"[{'OK' if ok else 'FAIL'}] check_sector_top3: {r}")
+          if not ok: all_ok = False
+
+          # 5. 52주 신고가 근접 (98% 이상 → True)
+          r = check_52week_high("005930", 98000, 100000)
+          ok = r["triggered"] == True
+          results.append(r)
+          print(f"[{'OK' if ok else 'FAIL'}] check_52week_high: {r}")
+          if not ok: all_ok = False
+
+          # count_triggers (5개 모두 충족 → 5)
+          count = count_triggers(results)
+          ok = count == 5
+          print(f"[{'OK' if ok else 'FAIL'}] count_triggers: {count}개 충족 (AI 호출 {'대상' if count >= 2 else '제외'})")
+          if not ok: all_ok = False
+
+          if not all_ok:
+              exit(1)
+          print("\n✅ 트리거 조건 테스트 전체 통과")
+          EOF
