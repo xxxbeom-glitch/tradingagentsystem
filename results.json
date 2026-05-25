@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-25T12:05:56",
+  "updated_at": "2026-05-25T12:06:41",
   "realtime": {
     "status": "fail",
     "workflow": "03_test_data.yml",
@@ -36,6 +36,46 @@
       "조회건수": "10건",
       "최근공시": "주식등의대량보유상황보고서(일반)",
       "응답시간": "26623ms"
+    },
+    "error": null
+  },
+  "db-connect": {
+    "status": "ok",
+    "workflow": "04_test_db.yml",
+    "run_at": "2026-05-25T12:06:41",
+    "data": {
+      "DB파일생성": "성공",
+      "연결상태": "성공",
+      "경로": "/home/runner/work/tradingagentsystem/tradingagentsystem/trading_agent.db",
+      "응답시간": "9ms"
+    },
+    "error": null
+  },
+  "db-schema": {
+    "status": "ok",
+    "workflow": "04_test_db.yml",
+    "run_at": "2026-05-25T12:06:41",
+    "data": {
+      "market_data테이블": "성공",
+      "disclosure_data테이블": "성공",
+      "trigger_log테이블": "성공",
+      "ai_decision_log테이블": "성공",
+      "portfolio테이블": "성공",
+      "balance테이블": "성공",
+      "응답시간": "0ms"
+    },
+    "error": null
+  },
+  "db-write": {
+    "status": "ok",
+    "workflow": "04_test_db.yml",
+    "run_at": "2026-05-25T12:06:41",
+    "data": {
+      "INSERT테스트": "성공",
+      "SELECT테스트": "성공",
+      "데이터일치여부": "성공",
+      "저장가격": "70,000원",
+      "소요시간": "1ms"
     },
     "error": null
   }
