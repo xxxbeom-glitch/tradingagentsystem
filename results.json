@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-25T12:06:41",
+  "updated_at": "2026-05-25T12:12:12",
   "realtime": {
     "status": "fail",
     "workflow": "03_test_data.yml",
@@ -76,6 +76,80 @@
       "데이터일치여부": "성공",
       "저장가격": "70,000원",
       "소요시간": "1ms"
+    },
+    "error": null
+  },
+  "kis": {
+    "status": "ok",
+    "workflow": "02_test_api.yml",
+    "run_at": "2026-05-25T12:12:00",
+    "data": {
+      "토큰발급": "성공",
+      "응답코드": "200",
+      "계좌번호확인": "성공",
+      "응답시간": "604ms"
+    },
+    "error": null
+  },
+  "dart": {
+    "status": "ok",
+    "workflow": "02_test_api.yml",
+    "run_at": "2026-05-25T12:12:01",
+    "data": {
+      "API키확인": "성공",
+      "공시조회테스트": "성공",
+      "조회기간": "20260425~20260525",
+      "기간내공시건수": "19066건",
+      "응답시간": "1303ms"
+    },
+    "error": null
+  },
+  "gemini": {
+    "status": "ok",
+    "workflow": "02_test_api.yml",
+    "run_at": "2026-05-25T12:12:03",
+    "data": {
+      "모델": "gemini-2.5-flash",
+      "연결상태": "성공",
+      "응답테스트": "성공",
+      "응답시간": "823ms"
+    },
+    "error": null
+  },
+  "deepseek": {
+    "status": "ok",
+    "workflow": "02_test_api.yml",
+    "run_at": "2026-05-25T12:12:07",
+    "data": {
+      "모델": "deepseek-chat",
+      "연결상태": "성공",
+      "응답테스트": "성공",
+      "응답시간": "1828ms"
+    },
+    "error": null
+  },
+  "naver": {
+    "status": "ok",
+    "workflow": "02_test_api.yml",
+    "run_at": "2026-05-25T12:12:08",
+    "data": {
+      "CLIENT_ID확인": "성공",
+      "뉴스검색테스트": "성공",
+      "검색결과": "3051437건",
+      "응답시간": "939ms"
+    },
+    "error": null
+  },
+  "pykrx": {
+    "status": "ok",
+    "workflow": "02_test_api.yml",
+    "run_at": "2026-05-25T12:12:12",
+    "data": {
+      "라이브러리로드": "성공",
+      "코스피조회": "성공",
+      "코스닥조회": "성공",
+      "종목수": "948개",
+      "응답시간": "3578ms"
     },
     "error": null
   }
