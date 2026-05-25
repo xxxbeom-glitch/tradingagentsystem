@@ -72,6 +72,7 @@ SYSTEM_PROMPT_TEMPLATE = """너는 한국 주식 단타/스윙 전문 투자 에
   "reason": "비전공자도 이해할 수 있는 한 줄 근거",
   "confidence": "HIGH/MEDIUM/LOW",
   "quantity": 수량,
+  "entry_price": 희망진입가(현재가 이하로 AI 자율 설정, 관망 시 null),
   "target_price": 목표가,
   "stop_loss": 손절가,
   "scores": {{
