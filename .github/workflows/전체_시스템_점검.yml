@@ -3,7 +3,7 @@ name: 전체 시스템 점검
 on:
   workflow_dispatch:
     inputs:
-      ai_테스트_포함:
+      include_ai_test:
         description: 'AI 에이전트 테스트 포함 여부 (팀A/B 실제 호출 — 토큰 소모)'
         required: true
         default: '아니오'
@@ -768,7 +768,7 @@ jobs:
 
 
       - name: 팀 A 에이전트 테스트 (Gemini Flash → DeepSeek R1)
-        if: ${{ github.event.inputs.ai_테스트_포함 == '예' }}
+        if: ${{ github.event.inputs.include_ai_test == '예' }}
         id: gemini-analysis-team-a
         run: |
           python - << 'EOF'
@@ -815,7 +815,7 @@ jobs:
           EOF
 
       - name: DeepSeek R1 — 종목 최종 결정
-        if: ${{ github.event.inputs.ai_테스트_포함 == '예' }}
+        if: ${{ github.event.inputs.include_ai_test == '예' }}
         id: deepseek-decision-team-a
         run: |
           python - << 'EOF'
@@ -857,7 +857,7 @@ jobs:
           EOF
 
       - name: JSON 출력 파싱 — action / ticker / 수량 (팀 A)
-        if: ${{ github.event.inputs.ai_테스트_포함 == '예' }}
+        if: ${{ github.event.inputs.include_ai_test == '예' }}
         id: parse-output-team-a
         run: |
           python - << 'EOF'
@@ -915,7 +915,7 @@ jobs:
       # ===== 팀 B =====
 
       - name: 팀 B 에이전트 테스트 (DeepSeek V3 → Gemini Pro + R1 검증)
-        if: ${{ github.event.inputs.ai_테스트_포함 == '예' }}
+        if: ${{ github.event.inputs.include_ai_test == '예' }}
         id: deepseek-analysis-team-b
         run: |
           python - << 'EOF'
@@ -962,7 +962,7 @@ jobs:
           EOF
 
       - name: Gemini Pro — 종목 결정
-        if: ${{ github.event.inputs.ai_테스트_포함 == '예' }}
+        if: ${{ github.event.inputs.include_ai_test == '예' }}
         id: gemini-decision-team-b
         run: |
           python - << 'EOF'
@@ -1004,7 +1004,7 @@ jobs:
           EOF
 
       - name: DeepSeek R1 — 반론 검증 (병렬)
-        if: ${{ github.event.inputs.ai_테스트_포함 == '예' }}
+        if: ${{ github.event.inputs.include_ai_test == '예' }}
         id: deepseek-verify-team-b
         run: |
           python - << 'EOF'
@@ -1047,7 +1047,7 @@ jobs:
           EOF
 
       - name: 최종 승인 / 거절 판단
-        if: ${{ github.event.inputs.ai_테스트_포함 == '예' }}
+        if: ${{ github.event.inputs.include_ai_test == '예' }}
         id: final-decision-team-b
         run: |
           python - << 'EOF'
@@ -1075,7 +1075,7 @@ jobs:
           EOF
 
       - name: JSON 출력 파싱 — action / ticker / 수량 (팀 B)
-        if: ${{ github.event.inputs.ai_테스트_포함 == '예' }}
+        if: ${{ github.event.inputs.include_ai_test == '예' }}
         id: parse-output-team-b
         run: |
           python - << 'EOF'
@@ -1138,7 +1138,7 @@ jobs:
           EOF
 
       - name: AI 테스트 결과 통합
-        if: ${{ github.event.inputs.ai_테스트_포함 == '예' }}
+        if: ${{ github.event.inputs.include_ai_test == '예' }}
         run: |
           python - << 'EOF'
           import json, os
