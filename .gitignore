@@ -42,3 +42,7 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+
+
+# results.json은 Actions가 업데이트하므로 추적 대상
+!results.json
