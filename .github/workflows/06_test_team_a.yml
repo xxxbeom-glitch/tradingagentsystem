@@ -1,0 +1,168 @@
+name: 06 팀 A 에이전트 테스트
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-team-a:
+    runs-on: ubuntu-latest
+
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      DEEPSEEK_BASE_URL: ${{ secrets.DEEPSEEK_BASE_URL }}
+      DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL }}
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 패키지 설치
+        run: pip install -r requirements.txt
+
+      - name: Gemini Flash — 정보 수집 / 분석
+        id: gemini-analysis
+        run: |
+          python - << 'EOF'
+          import json, os, sys, time
+          from datetime import datetime
+
+          sys.path.insert(0, os.getcwd())
+          from agents.team_a import analyze_with_gemini
+
+          stock_data = {
+              "ticker": "005930",
+              "name": "삼성전자",
+              "current_price": 58000,
+              "volume": 3000000,
+              "change_rate": 2.5,
+              "foreign_net": 500000,
+              "institution_net": 200000,
+              "market_direction": "우호적",
+              "triggers": ["거래량급증", "외국인순매수전환"],
+              "disclosures": ["2024-05-25 주식등의대량보유상황보고서"],
+              "portfolio": [],
+              "available_cash": 500000,
+          }
+
+          start = time.time()
+          try:
+              result = analyze_with_gemini(stock_data)
+              latency = int((time.time() - start) * 1000)
+              print(f"[OK] Gemini 분석 완료: {latency}ms")
+              print(f"결과: {result[:200]}")
+              with open("_gemini_analysis.txt", "w", encoding="utf-8") as f:
+                  f.write(result)
+              with open("_gemini_result.json", "w", encoding="utf-8") as f:
+                  json.dump({
+                      "status": "ok",
+                      "latency": f"{latency}ms",
+                      "result_preview": result[:200],
+                  }, f, ensure_ascii=False)
+          except Exception as e:
+              print(f"[FAIL] Gemini 분석 실패: {e}")
+              with open("_gemini_result.json", "w", encoding="utf-8") as f:
+                  json.dump({"status": "fail", "error": str(e)}, f, ensure_ascii=False)
+              exit(1)
+          EOF
+
+      - name: DeepSeek R1 — 종목 최종 결정
+        id: deepseek-decision
+        run: |
+          python - << 'EOF'
+          import json, os, sys, time
+          from datetime import datetime
+
+          sys.path.insert(0, os.getcwd())
+          from agents.team_a import decide_with_deepseek
+
+          stock_data = {
+              "ticker": "005930",
+              "name": "삼성전자",
+              "current_price": 58000,
+              "available_cash": 500000,
+          }
+
+          with open("_gemini_analysis.txt", "r", encoding="utf-8") as f:
+              gemini_result = f.read()
+
+          start = time.time()
+          try:
+              result = decide_with_deepseek(gemini_result, stock_data)
+              latency = int((time.time() - start) * 1000)
+              print(f"[OK] DeepSeek 결정 완료: {latency}ms")
+              print(f"action={result.get('action')} confidence={result.get('confidence')}")
+              with open("_deepseek_result.json", "w", encoding="utf-8") as f:
+                  json.dump({
+                      "status": "ok",
+                      "latency": f"{latency}ms",
+                      "action": result.get("action"),
+                      "confidence": result.get("confidence"),
+                      "result": result,
+                  }, f, ensure_ascii=False)
+          except Exception as e:
+              print(f"[FAIL] DeepSeek 결정 실패: {e}")
+              with open("_deepseek_result.json", "w", encoding="utf-8") as f:
+                  json.dump({"status": "fail", "error": str(e)}, f, ensure_ascii=False)
+              exit(1)
+          EOF
+
+      - name: JSON 출력 파싱 — action / ticker / 수량
+        id: parse-output
+        run: |
+          python - << 'EOF'
+          import json, os, sys
+          from datetime import datetime
+
+          with open("_deepseek_result.json", "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          result = data.get("result", {})
+          action = result.get("action", "관망")
+          ticker = result.get("ticker", "005930")
+          name = result.get("name", "삼성전자")
+          quantity = result.get("quantity", 0)
+          confidence = result.get("confidence", "LOW")
+          reason = result.get("reason", "")
+          target_price = result.get("target_price", 0)
+          stop_loss = result.get("stop_loss", 0)
+          trade_type = result.get("type", "단타")
+          scores = result.get("scores", {})
+
+          ok = action in ["매수", "매도", "관망"]
+          print(f"[{'OK' if ok else 'FAIL'}] JSON 파싱 완료")
+          print(f"action={action} ticker={ticker} name={name}")
+          print(f"quantity={quantity} confidence={confidence}")
+          print(f"reason={reason}")
+          print(f"target_price={target_price} stop_loss={stop_loss}")
+          print(f"scores={scores}")
+
+          final = {
+              "status": "ok" if ok else "fail",
+              "workflow": "06_test_team_a.yml",
+              "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+              "data": {
+                  "action": action,
+                  "ticker": f"{name}({ticker})",
+                  "type": trade_type,
+                  "confidence": confidence,
+                  "quantity": f"{quantity}주",
+                  "target_price": f"{target_price:,}원" if target_price else "—",
+                  "stop_loss": f"{stop_loss:,}원" if stop_loss else "—",
+                  "reason": reason,
+                  "scores": scores,
+              },
+              "error": None if ok else "action 값 오류",
+          }
+
+          with open("_team_a_final.json", "w", encoding="utf-8") as f:
+              json.dump(final, f, ensure_ascii=False, indent=2)
+
+          if not ok:
+              exit(1)
+          EOF
