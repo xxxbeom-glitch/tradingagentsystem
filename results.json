@@ -1,75 +1,75 @@
 {
-  "updated_at": "2026-05-25T07:06:09",
+  "updated_at": "2026-05-25T07:07:04",
   "kis": {
-    "status": "ok",
+    "status": "fail",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T07:05:55",
+    "run_at": "2026-05-25T07:06:55",
     "data": {
-      "토큰발급": "성공",
-      "응답코드": "200",
+      "토큰발급": "실패",
+      "응답코드": "403",
       "계좌번호확인": "성공",
-      "응답시간": "1321ms"
+      "응답시간": "515ms"
     },
-    "error": null
+    "error": "HTTP 403: {\"error_code\":\"EGW00133\",\"error_description\":\"접근토큰 발급 잠시 후 다시 시도하세요(1분당 1회)\"}"
   },
   "dart": {
     "status": "fail",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T07:05:56",
+    "run_at": "2026-05-25T07:06:55",
     "data": {
       "API키확인": "성공",
       "공시조회테스트": "실패",
       "오늘공시건수": "0건",
-      "응답시간": "1209ms"
+      "응답시간": "752ms"
     },
     "error": "status: 013 message: 조회된 데이타가 없습니다."
   },
   "gemini": {
     "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T07:05:58",
+    "run_at": "2026-05-25T07:06:57",
     "data": {
       "모델": "gemini-2.5-flash",
       "연결상태": "성공",
       "응답테스트": "성공",
-      "응답시간": "923ms"
+      "응답시간": "794ms"
     },
     "error": null
   },
   "deepseek": {
     "status": "fail",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T07:06:02",
+    "run_at": "2026-05-25T07:07:01",
     "data": {
       "모델": "deepseek-reasoner",
       "연결상태": "실패",
       "응답테스트": "실패",
-      "응답시간": "1644ms"
+      "응답시간": "1140ms"
     },
     "error": null
   },
   "naver": {
     "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T07:06:03",
+    "run_at": "2026-05-25T07:07:02",
     "data": {
       "CLIENT_ID확인": "성공",
       "뉴스검색테스트": "성공",
       "검색결과": "3051399건",
-      "응답시간": "1157ms"
+      "응답시간": "855ms"
     },
     "error": null
   },
   "pykrx": {
     "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T07:06:08",
+    "run_at": "2026-05-25T07:07:04",
     "data": {
       "라이브러리로드": "성공",
       "코스피조회": "성공",
       "코스닥조회": "성공",
       "종목수": "948개",
-      "응답시간": "5040ms"
+      "응답시간": "2551ms"
     },
     "error": null
   }
