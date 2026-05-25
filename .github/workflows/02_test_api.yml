@@ -88,18 +88,20 @@ jobs:
         run: |
           python - << 'EOF'
           import os, json, requests, time
-          from datetime import datetime
+          from datetime import datetime, timedelta
 
           api_key = os.environ["DART_API_KEY"]
           url = "https://opendart.fss.or.kr/api/list.json"
-          today = datetime.now().strftime("%Y%m%d")
+          today = datetime.now()
+          end_de = today.strftime("%Y%m%d")
+          bgn_de = (today - timedelta(days=30)).strftime("%Y%m%d")
 
           start = time.time()
           try:
               res = requests.get(url, params={
                   "crtfc_key": api_key,
-                  "bgn_de": today,
-                  "end_de": today,
+                  "bgn_de": bgn_de,
+                  "end_de": end_de,
                   "page_count": 5
               }, timeout=10)
               latency = int((time.time() - start) * 1000)
@@ -113,7 +115,8 @@ jobs:
                   "data": {
                       "API키확인": "성공",
                       "공시조회테스트": "성공" if ok else "실패",
-                      "오늘공시건수": f"{count}건",
+                      "조회기간": f"{bgn_de}~{end_de}",
+                      "기간내공시건수": f"{count}건",
                       "응답시간": f"{latency}ms"
                   },
                   "error": None if ok else f"status: {data.get('status')} message: {data.get('message')}"
@@ -123,7 +126,7 @@ jobs:
               result = {
                   "status": "fail", "workflow": "02_test_api.yml",
                   "run_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-                  "data": {"API키확인": "성공", "공시조회테스트": "실패", "오늘공시건수": "—", "응답시간": "—"},
+                  "data": {"API키확인": "성공", "공시조회테스트": "실패", "조회기간": f"{bgn_de}~{end_de}", "기간내공시건수": "—", "응답시간": "—"},
                   "error": str(e)
               }
               print(f"[FAIL] DART API: {e}")
