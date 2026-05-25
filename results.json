@@ -1,84 +1,76 @@
 {
-  "updated_at": "2026-05-25T11:42:58",
+  "updated_at": "2026-05-25T11:43:50",
   "kis": {
     "status": "ok",
-    "workflow": "01_check_env.yml",
-    "run_at": "2026-05-25T11:42:58",
+    "workflow": "02_test_api.yml",
+    "run_at": "2026-05-25T11:43:36",
     "data": {
-      "DART_API_KEY": "설정됨",
-      "DEEPSEEK_API_KEY": "설정됨",
-      "DEEPSEEK_BASE_URL": "설정됨",
-      "DEEPSEEK_MODEL": "설정됨",
-      "GEMINI_API_KEY": "설정됨",
-      "KIS_ACCOUNT_NO": "설정됨",
-      "KIS_APP_KEY": "설정됨",
-      "KIS_APP_SECRET": "설정됨",
-      "KRX_ID": "설정됨",
-      "KRX_PW": "설정됨",
-      "NAVER_CLIENT_ID": "설정됨",
-      "NAVER_CLIENT_SECRET": "설정됨"
+      "토큰발급": "성공",
+      "응답코드": "200",
+      "계좌번호확인": "성공",
+      "응답시간": "705ms"
     },
     "error": null
   },
   "dart": {
     "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:34:56",
+    "run_at": "2026-05-25T11:43:38",
     "data": {
       "API키확인": "성공",
       "공시조회테스트": "성공",
       "조회기간": "20260425~20260525",
       "기간내공시건수": "19066건",
-      "응답시간": "1101ms"
+      "응답시간": "1326ms"
     },
     "error": null
   },
   "gemini": {
     "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:34:57",
+    "run_at": "2026-05-25T11:43:39",
     "data": {
       "모델": "gemini-2.5-flash",
       "연결상태": "성공",
       "응답테스트": "성공",
-      "응답시간": "734ms"
+      "응답시간": "843ms"
     },
     "error": null
   },
   "deepseek": {
     "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:35:02",
+    "run_at": "2026-05-25T11:43:44",
     "data": {
       "모델": "deepseek-chat",
       "연결상태": "성공",
       "응답테스트": "성공",
-      "응답시간": "2230ms"
+      "응답시간": "2507ms"
     },
     "error": null
   },
   "naver": {
     "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:35:03",
+    "run_at": "2026-05-25T11:43:46",
     "data": {
       "CLIENT_ID확인": "성공",
       "뉴스검색테스트": "성공",
       "검색결과": "3051437건",
-      "응답시간": "1010ms"
+      "응답시간": "1168ms"
     },
     "error": null
   },
   "pykrx": {
     "status": "ok",
     "workflow": "02_test_api.yml",
-    "run_at": "2026-05-25T11:35:08",
+    "run_at": "2026-05-25T11:43:50",
     "data": {
       "라이브러리로드": "성공",
       "코스피조회": "성공",
       "코스닥조회": "성공",
       "종목수": "948개",
-      "응답시간": "4349ms"
+      "응답시간": "4170ms"
     },
     "error": null
   }
