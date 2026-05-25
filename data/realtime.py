@@ -254,25 +254,30 @@ class KISClient:
             )
         return result
 
-    def get_net_buy_aggregate(self, market: str = "J") -> dict[str, Any]:
-        """외국인/기관 가집계 (시장 단위)."""
+    def get_net_buy_aggregate(self, ticker: str = "005930", market_div: str = "J") -> dict[str, Any]:
+        """외국인/기관 순매수 (종목별 투자자 동향 기준)."""
+        code = str(ticker).zfill(6)
         data = self._request(
             "GET",
-            "/uapi/domestic-stock/v1/quotations/foreign-institution-total",
-            self._tr_id("FHPTJ04340000"),
+            "/uapi/domestic-stock/v1/quotations/inquire-investor",
+            self._tr_id("FHKST01010900"),
             params={
-                "FID_COND_MRKT_DIV_CODE": market,
-                "FID_INPUT_ISCD": "0000",
+                "FID_COND_MRKT_DIV_CODE": market_div,
+                "FID_INPUT_ISCD": code,
             },
         )
-        output = data.get("output") or {}
-        if isinstance(output, list) and output:
-            output = output[0]
+        output = data.get("output") or []
+        if isinstance(output, dict):
+            output = [output]
+
+        # 가장 최근 데이터 1건 기준
+        row = output[0] if output else {}
         return {
             "collected_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "foreign_net": int(output.get("frgn_ntby_qty") or output.get("frgn_ntby_tr_pbmn") or 0),
-            "institution_net": int(output.get("orgn_ntby_qty") or output.get("orgn_ntby_tr_pbmn") or 0),
-            "raw": output,
+            "ticker": code,
+            "foreign_net": int(row.get("frgn_ntby_qty") or row.get("frgn_ntby_tr_pbmn") or 0),
+            "institution_net": int(row.get("orgn_ntby_qty") or row.get("orgn_ntby_tr_pbmn") or 0),
+            "raw": row,
         }
 
     def get_news_titles(self, ticker: str, count: int = 10) -> list[dict[str, Any]]:
