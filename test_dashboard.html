@@ -185,22 +185,22 @@
 // ─────────────────────────────────────────
 const CARDS = {
   api: [
-    { id: 'kis',      title: '한국투자증권 API', sub: '01_check_env.yml / 02_test_api.yml', log: 'logs/api/kis_api.log' },
-    { id: 'dart',     title: 'DART API',         sub: '02_test_api.yml',                    log: 'logs/api/dart_api.log' },
-    { id: 'gemini',   title: 'Gemini API',        sub: '02_test_api.yml',                    log: 'logs/api/gemini_api.log' },
-    { id: 'deepseek', title: 'DeepSeek API',      sub: '02_test_api.yml',                    log: 'logs/api/deepseek_api.log' },
-    { id: 'naver',    title: 'Naver API',          sub: '02_test_api.yml',                    log: 'logs/api/naver_api.log' },
-    { id: 'pykrx',    title: 'pykrx',             sub: '02_test_api.yml',                    log: 'logs/api/pykrx_api.log' },
+    { id: 'kis',      title: '한국투자증권 API', sub: '전체_시스템_점검.yml', log: 'logs/api/kis_api.log' },
+    { id: 'dart',     title: 'DART API',         sub: '전체_시스템_점검.yml',                    log: 'logs/api/dart_api.log' },
+    { id: 'gemini',   title: 'Gemini API',        sub: '전체_시스템_점검.yml',                    log: 'logs/api/gemini_api.log' },
+    { id: 'deepseek', title: 'DeepSeek API',      sub: '전체_시스템_점검.yml',                    log: 'logs/api/deepseek_api.log' },
+    { id: 'naver',    title: 'Naver API',          sub: '전체_시스템_점검.yml',                    log: 'logs/api/naver_api.log' },
+    { id: 'pykrx',    title: 'pykrx',             sub: '전체_시스템_점검.yml',                    log: 'logs/api/pykrx_api.log' },
   ],
   db: [
-    { id: 'db-connect', title: 'SQLite 연결',     sub: '04_test_db.yml', log: 'logs/system/health.log' },
-    { id: 'db-write',   title: 'DB 쓰기 / 읽기', sub: '04_test_db.yml', log: 'logs/system/health.log' },
-    { id: 'db-schema',  title: '테이블 스키마',   sub: '04_test_db.yml', log: 'logs/system/error.log' },
+    { id: 'db-connect', title: 'SQLite 연결',     sub: '전체_시스템_점검.yml', log: 'logs/system/health.log' },
+    { id: 'db-write',   title: 'DB 쓰기 / 읽기', sub: '전체_시스템_점검.yml', log: 'logs/system/health.log' },
+    { id: 'db-schema',  title: '테이블 스키마',   sub: '전체_시스템_점검.yml', log: 'logs/system/error.log' },
   ],
   data: [
-    { id: 'realtime',   title: '실시간 시세 수신', sub: '03_test_data.yml',     log: 'logs/market/realtime.log' },
-    { id: 'supply',     title: '수급 데이터',      sub: '03_test_data.yml',     log: 'logs/market/realtime.log' },
-    { id: 'disclosure', title: '공시 수집',         sub: '03_test_data.yml',     log: 'logs/api/dart_api.log' },
+    { id: 'realtime',   title: '실시간 시세 수신', sub: '전체_시스템_점검.yml',     log: 'logs/market/realtime.log' },
+    { id: 'supply',     title: '수급 데이터',      sub: '전체_시스템_점검.yml',     log: 'logs/market/realtime.log' },
+    { id: 'disclosure', title: '공시 수집',         sub: '전체_시스템_점검.yml',     log: 'logs/api/dart_api.log' },
     { id: 'trigger',    title: '트리거 조건 감지',  sub: '05_test_trigger.yml',  log: 'logs/market/trigger.log' },
   ],
   'ai-a': [
