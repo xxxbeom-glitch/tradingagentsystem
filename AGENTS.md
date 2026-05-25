@@ -159,3 +159,12 @@ AI 투자 파이프라인을 검증하는 것.
   "이 로직이 나중에 정형화된 UI 테이블로 바로 출력될 수 있는가?"
 - AI는 분석+점수 제공까지만, 최종 판단은 사용자 몫
 - 법적 리스크 회피 원칙: "추천"이 아닌 "분석 근거 제공" 구조 유지
+
+---
+
+## 13. Git 절대 규칙
+
+- results.json은 GitHub Actions만 수정/커밋한다
+- 로컬에서 results.json을 절대 수정하거나 git add/commit 하지 말 것
+- 코드 수정 후 push 전에 반드시 확인:
+  git status에서 results.json이 포함되어 있으면 제외하고 push
