@@ -21,6 +21,10 @@ import sys
 from datetime import datetime
 from typing import Any
 
+import requests
+from data.dart import get_disclosures_by_ticker
+from data.realtime import KISClient
+
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_PATH = os.path.join(ROOT_DIR, "logs", "system", "main.log")
 
@@ -233,16 +237,61 @@ def run_cycle() -> None:
         logger.error("모듈 로드 실패: %s", e)
         return
 
+    client = KISClient()
+
     for candidate in candidates[:3]:  # 최대 3종목 검토
         ticker = candidate["ticker"]
         name = candidate["name"]
         logger.info("후보 종목 분석 | %s(%s) | 트리거: %s",
                     name, ticker, candidate["triggers"])
 
+        # 실시간 현재가 + 수급
+        try:
+            price_data = client.get_current_price(ticker)
+            current_price = price_data.get("price", candidate["current_price"])
+            foreign_net = price_data.get("volume", 0)
+            investor_data = client.get_investor_trend(ticker)
+            rows = investor_data.get("rows", [])
+            institution_net = int(rows[0].get("orgn_ntby_qty", 0)) if rows else 0
+            foreign_net = int(rows[0].get("frgn_ntby_qty", 0)) if rows else 0
+        except Exception:
+            current_price = candidate["current_price"]
+            foreign_net = candidate.get("foreign_net", 0)
+            institution_net = candidate.get("institution_net", 0)
+
+        # 공시 수집 (당일)
+        try:
+            disclosures = get_disclosures_by_ticker(ticker, days=1)
+            disclosure_titles = [d.get("title", "") for d in disclosures[:5]]
+        except Exception:
+            disclosure_titles = []
+
+        # 네이버 뉴스
+        try:
+            client_id = os.environ.get("NAVER_CLIENT_ID", "")
+            client_secret = os.environ.get("NAVER_CLIENT_SECRET", "")
+            res = requests.get(
+                "https://openapi.naver.com/v1/search/news.json",
+                headers={
+                    "X-Naver-Client-Id": client_id,
+                    "X-Naver-Client-Secret": client_secret,
+                },
+                params={"query": name, "display": 3, "sort": "date"},
+                timeout=5,
+            )
+            news_titles = [item.get("title", "").replace("<b>", "").replace("</b>", "")
+                           for item in res.json().get("items", [])] if res.status_code == 200 else []
+        except Exception:
+            news_titles = []
+
         stock_data = {
             **candidate,
+            "current_price": current_price,
+            "foreign_net": foreign_net,
+            "institution_net": institution_net,
             "market_direction": market_direction,
-            "disclosures": [],
+            "disclosures": disclosure_titles,
+            "news": news_titles,
             "portfolio": [],
             "available_cash": 0,
         }
