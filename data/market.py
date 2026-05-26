@@ -50,7 +50,7 @@ def get_market_ohlcv(date: str | None = None) -> dict[str, Any]:
     date: YYYYMMDD 형식, None이면 전일 기준
     """
     if date is None:
-        date = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
+        date = datetime.now().strftime("%Y%m%d")
     try:
         df = stock.get_market_ohlcv_by_ticker(date)
         logger.info("시장 데이터 조회 완료 | date=%s | 종목수=%d", date, len(df))

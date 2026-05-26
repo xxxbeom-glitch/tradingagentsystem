@@ -112,6 +112,8 @@
     background: rgba(77,159,255,0.08); color: #4d9fff;
     border: 1px solid rgba(77,159,255,0.2);
     transition: background 0.15s;
+    text-decoration: none;
+    display: inline-block;
   }
   .log-btn:hover { background: rgba(77,159,255,0.15); }
   .page-shell { display: flex; align-items: flex-start; }
@@ -340,9 +342,12 @@ function buildCard(def, result) {
     ? new Date(result.run_at).toLocaleString('ko-KR',{hour12:false})
     : '—';
   const wfText = result ? result.workflow || '—' : '—';
-  const logPath = def.log || '';
-  const logBtn = logPath
-    ? `<button class="log-btn" onclick="openLog('${logPath}')" title="${logPath}">로그 보기</button>`
+  const workflowFile = def.sub || '';
+  const workflowActionsUrl = workflowFile
+    ? `https://github.com/xxxbeom-glitch/tradingagentsystem/actions/workflows/${workflowFile}`
+    : '';
+  const logBtn = workflowActionsUrl
+    ? `<a class="log-btn" href="${workflowActionsUrl}" target="_blank" rel="noopener noreferrer" title="${workflowFile}">로그 보기</a>`
     : '';
 
   return `
@@ -491,7 +496,6 @@ function render(data) {
     document.getElementById('lastUpdated').textContent = '—';
   }
   updateStaleBanner(data);
-  renderTimeline(data);
 
   ['api','db','data','ai-a','ai-b'].forEach(s => renderSection(s, data));
 
@@ -503,6 +507,18 @@ function render(data) {
 }
 
 const REFRESH_INTERVAL_MS = 30000;
+const TIMELINE_URL = 'https://raw.githubusercontent.com/xxxbeom-glitch/tradingagentsystem/main/timeline.json';
+
+async function loadTimeline() {
+  try {
+    const res = await fetch(TIMELINE_URL + '?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    renderTimeline(data);
+  } catch (e) {
+    renderTimeline({ timeline: [] });
+  }
+}
 
 async function loadResults(silent = false) {
   if (!silent) addLog('results.json 로드 시도...', 'info');
@@ -521,11 +537,13 @@ async function loadResults(silent = false) {
       }
     }
     render(data);
+    loadTimeline();
   } catch(e) {
     if (!silent) {
       addLog('results.json 로드 실패 — 초기 상태 표시 (' + e.message + '). file:// 이면 로컬 서버 사용 권장', 'warn');
     }
     render(EMPTY_RESULTS);
+    loadTimeline();
   }
 }
 

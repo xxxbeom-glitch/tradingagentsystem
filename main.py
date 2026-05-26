@@ -15,6 +15,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import sys
 from datetime import datetime
 from typing import Any
@@ -40,20 +42,17 @@ def _setup_logger() -> logging.Logger:
 
 logger = _setup_logger()
 
-RESULTS_PATH = os.path.join(ROOT_DIR, "results.json")
+TIMELINE_PATH = os.path.join(ROOT_DIR, "timeline.json")
 
 
 def add_timeline_event(event_type: str, text: str) -> None:
-    """results.json의 timeline 키에 이벤트 추가."""
+    """timeline.json에 이벤트 추가."""
     try:
         try:
-            with open(RESULTS_PATH, "r", encoding="utf-8") as f:
+            with open(TIMELINE_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
         except Exception:
-            data = {}
-
-        if "timeline" not in data:
-            data["timeline"] = []
+            data = {"timeline": []}
 
         data["timeline"].insert(0, {
             "time": datetime.now().strftime("%H:%M:%S"),
@@ -61,10 +60,10 @@ def add_timeline_event(event_type: str, text: str) -> None:
             "text": text,
         })
 
-        # 최대 50개 유지
-        data["timeline"] = data["timeline"][:50]
+        # 최대 100개 유지
+        data["timeline"] = data["timeline"][:100]
 
-        with open(RESULTS_PATH, "w", encoding="utf-8") as f:
+        with open(TIMELINE_PATH, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.error("타임라인 이벤트 추가 실패: %s", e)
@@ -301,6 +300,28 @@ def run_cycle() -> None:
     logger.info("사이클 완료 | %s", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 
+import time
+
 if __name__ == "__main__":
+    import time
     logger.info("Trading Agent System 시작")
-    run_cycle()
+    while True:
+        try:
+            run_cycle()
+        except Exception as e:
+            logger.error("사이클 오류: %s", e)
+
+        now = datetime.now()
+
+        # 13시 이후 종료
+        if now.hour >= 13:
+            logger.info("13시 도달 — 시스템 종료")
+            break
+
+        # 장 마감 후 종료
+        if now.hour >= 16:
+            logger.info("장 마감 — 시스템 종료")
+            break
+
+        logger.info("다음 사이클까지 5분 대기...")
+        time.sleep(300)
