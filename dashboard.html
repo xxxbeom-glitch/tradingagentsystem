@@ -355,15 +355,137 @@
     letter-spacing: 0.04em;
   }
 
+  .holding-block {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+  }
+
+  .holding-block:last-child {
+    border-bottom: none;
+  }
+
   .holding-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 10px 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: none;
   }
 
-  .holding-row:last-child { border-bottom: none; }
+  .score-toggle-btn {
+    display: inline-block;
+    margin: 0 0 8px 0;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue);
+    background: var(--blue-dim);
+    border: 1px solid rgba(26, 115, 232, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .score-toggle-btn:hover {
+    background: rgba(26, 115, 232, 0.14);
+    color: var(--text);
+  }
+
+  .score-panel {
+    display: none;
+    margin: 0 0 12px 0;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .score-panel.is-open {
+    display: block;
+  }
+
+  .score-row {
+    display: grid;
+    grid-template-columns: 72px 1fr 52px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .score-row:last-of-type {
+    margin-bottom: 0;
+  }
+
+  .score-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+  }
+
+  .score-bar-wrap {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .score-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.25s ease;
+  }
+
+  .score-bar.data {
+    background: linear-gradient(90deg, #4a90e2, var(--blue));
+  }
+
+  .score-bar.ai {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+  }
+
+  .score-bar.risk {
+    background: linear-gradient(90deg, #f87171, var(--red));
+  }
+
+  .score-value {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: right;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .score-total {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .score-total-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+  }
+
+  .score-total-value {
+    font-size: 22px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .score-total-value.total-high { color: var(--green); }
+  .score-total-value.total-mid { color: var(--amber); }
+  .score-total-value.total-low { color: var(--red); }
+
+  .score-empty {
+    font-size: 12px;
+    color: var(--text3);
+    text-align: center;
+    padding: 8px 0;
+  }
 
   .holding-left {
     display: flex;
@@ -1110,6 +1232,135 @@
   const REFRESH_INTERVAL_MS = 10000;
   const SEED_MONEY = 1000000;
 
+  /** true: 목업 데이터 표시 | false: portfolio.json·timeline.json 사용 */
+  const USE_MOCK_DATA = true;
+
+  const MOCK_PORTFOLIO = {
+    updated_at: '2026-05-26 13:05:00 (목업)',
+    trade_round_total: 12,
+    ai_decision_total: 48,
+    team_a: {
+      cash: 530200,
+      invested: 492000,
+      total_value: 1032000,
+      return_pct: 3.2,
+      realized_pnl: 32000,
+      total_trades: 6,
+      win_rate: 60,
+      holdings: [
+        {
+          ticker: '247540',
+          name: '에코프로비엠',
+          buy_price: 52000,
+          current_price: 54600,
+          quantity: 5,
+          pnl_rate: 5.0,
+          trade_type: '단타',
+          scores: { 거래대금: 16, 수급: 20, 모멘텀: 17, 뉴스: 12, 섹터: 8, 리스크: 6 },
+        },
+        {
+          ticker: '005930',
+          name: '삼성전자',
+          buy_price: 58000,
+          current_price: 57200,
+          quantity: 4,
+          pnl_rate: -1.4,
+          trade_type: '스윙',
+          scores: { 거래대금: 18, 수급: 15, 모멘텀: 14, 뉴스: 10, 섹터: 7, 리스크: 4 },
+        },
+      ],
+      ai_log: [
+        {
+          time: '10:05:23',
+          action: '매수',
+          ticker: '247540',
+          name: '에코프로비엠',
+          confidence: 'HIGH',
+          reason: '거래량 500% 급증, 외국인+기관 쌍끌이 확인',
+          scores: { 거래대금: 16, 수급: 20, 모멘텀: 17, 뉴스: 12, 섹터: 8, 리스크: 6 },
+        },
+        {
+          time: '10:32:11',
+          action: '매수',
+          ticker: '005930',
+          name: '삼성전자',
+          confidence: 'MEDIUM',
+          reason: '외국인 3일 연속 순매수, 52주 신고가 근접',
+          scores: { 거래대금: 18, 수급: 15, 모멘텀: 14, 뉴스: 10, 섹터: 7, 리스크: 4 },
+        },
+        {
+          time: '11:15:44',
+          action: '관망',
+          ticker: '005380',
+          name: '현대차',
+          confidence: 'LOW',
+          reason: '수급 조건 미충족, 거래대금 50억 미만',
+        },
+      ],
+    },
+    team_b: {
+      cash: 782800,
+      invested: 235200,
+      total_value: 1018000,
+      return_pct: 1.8,
+      realized_pnl: 18000,
+      total_trades: 6,
+      win_rate: 50,
+      holdings: [
+        {
+          ticker: '035720',
+          name: '카카오',
+          buy_price: 38500,
+          current_price: 39200,
+          quantity: 6,
+          pnl_rate: 1.8,
+          trade_type: '단타',
+          scores: { 거래대금: 14, 수급: 18, 모멘텀: 16, 뉴스: 13, 섹터: 9, 리스크: 7 },
+        },
+      ],
+      ai_log: [
+        {
+          time: '10:12:08',
+          action: '매수',
+          ticker: '035720',
+          name: '카카오',
+          confidence: 'MEDIUM',
+          reason: '기관 순매수 전환, 업종 상위 3위 진입',
+          verification: '통과',
+          scores: { 거래대금: 14, 수급: 18, 모멘텀: 16, 뉴스: 13, 섹터: 9, 리스크: 7 },
+        },
+        {
+          time: '11:03:55',
+          action: '관망',
+          ticker: '373220',
+          name: 'LG에너지솔루션',
+          confidence: 'LOW',
+          reason: 'R1 검증 거절, 갭 상승 10% 초과',
+          verification: '거절',
+        },
+        {
+          time: '12:28:30',
+          action: '관망',
+          ticker: '000660',
+          name: 'SK하이닉스',
+          confidence: 'HIGH',
+          reason: 'Gemini Pro 매수 판단, R1 리스크 과다 거절',
+          verification: '거절',
+        },
+      ],
+    },
+  };
+
+  const MOCK_TIMELINE = {
+    timeline: [
+      { time: '13:02:11', type: '트리거', text: '에코프로비엠(247540) 거래량급증' },
+      { time: '13:01:55', type: '트리거', text: '포스코퓨처엠(003670) 외국인순매수' },
+      { time: '13:01:33', type: '트리거', text: 'NAVER(035420) 52주신고가' },
+      { time: '13:00:47', type: '트리거', text: '삼성바이오로직스(207940) 거래량급증' },
+      { time: '13:00:21', type: '트리거', text: '카카오(035720) 기관순매수전환' },
+    ],
+  };
+
   let returnsChart = null;
 
   function tick() {
@@ -1157,36 +1408,143 @@
     el.className = 'summary-value ' + pnlClass(value);
   }
 
-  function buildHoldingsHtml(holdings) {
+  const SCORE_DEFINITIONS = [
+    { label: '거래대금', max: 20, type: 'data', keys: ['거래대금'] },
+    { label: '수급', max: 25, type: 'data', keys: ['수급'] },
+    { label: '모멘텀', max: 20, type: 'data', keys: ['모멘텀'] },
+    { label: '뉴스/공시', max: 15, type: 'ai', keys: ['뉴스', '뉴스/공시'] },
+    { label: '섹터/테마', max: 10, type: 'ai', keys: ['섹터', '섹터/테마'] },
+    { label: '리스크', max: 10, type: 'risk', keys: ['리스크'] },
+  ];
+
+  function findScoresForHolding(holding, aiLog) {
+    if (holding && holding.scores && Object.keys(holding.scores).length > 0) {
+      return holding.scores;
+    }
+    const ticker = holding?.ticker || '';
+    const logs = aiLog || [];
+    const buyEntry = logs.find(e => e.ticker === ticker && e.action === '매수' && e.scores);
+    if (buyEntry) return buyEntry.scores;
+    const anyEntry = logs.find(e => e.ticker === ticker && e.scores);
+    return anyEntry ? anyEntry.scores : null;
+  }
+
+  function scoreRawToPoints(raw, maxPoints) {
+    if (raw === null || raw === undefined || raw === '' || Number.isNaN(Number(raw))) {
+      return null;
+    }
+    const n = Number(raw);
+    if (n <= maxPoints) return Math.round(n);
+    const scaled = Math.max(0, Math.min(10, n));
+    return Math.round((scaled / 10) * maxPoints);
+  }
+
+  function lookupRawScore(scores, keys) {
+    if (!scores) return null;
+    for (const key of keys) {
+      if (scores[key] !== undefined && scores[key] !== null && scores[key] !== '') {
+        return scores[key];
+      }
+    }
+    return null;
+  }
+
+  function buildScorePanelHtml(scores) {
+    if (!scores || typeof scores !== 'object') {
+      return '<div class="score-empty">점수 데이터 없음</div>';
+    }
+
+    let total = 0;
+    let hasAny = false;
+    const rows = SCORE_DEFINITIONS.map(def => {
+      const raw = lookupRawScore(scores, def.keys);
+      const points = scoreRawToPoints(raw, def.max);
+      if (points !== null) {
+        hasAny = true;
+        total += points;
+      }
+      const display = points !== null ? `${points} / ${def.max}` : '-';
+      const pct = points !== null ? Math.min(100, (points / def.max) * 100) : 0;
+      const barClass = def.type === 'risk' ? 'risk' : (def.type === 'ai' ? 'ai' : 'data');
+      return `
+        <div class="score-row">
+          <span class="score-label">${def.label}</span>
+          <div class="score-bar-wrap">
+            <div class="score-bar ${barClass}" style="width:${points !== null ? pct : 0}%"></div>
+          </div>
+          <span class="score-value">${display}</span>
+        </div>`;
+    }).join('');
+
+    if (!hasAny) {
+      return '<div class="score-empty">점수 데이터 없음</div>';
+    }
+
+    let totalClass = 'total-low';
+    if (total >= 80) totalClass = 'total-high';
+    else if (total >= 60) totalClass = 'total-mid';
+
+    return `
+      ${rows}
+      <div class="score-total">
+        <span class="score-total-label">종합점수</span>
+        <span class="score-total-value ${totalClass}">${total}<span style="font-size:13px;font-weight:600;color:var(--text3)"> / 100</span></span>
+      </div>`;
+  }
+
+  function buildHoldingsHtml(holdings, aiLog) {
     if (!holdings || holdings.length === 0) {
       return '<div class="holding-row" style="justify-content:center;color:var(--text3);font-size:12px;padding:12px 0;">보유 종목 없음</div>';
     }
-    return holdings.map(h => {
+    return holdings.map((h, idx) => {
       const name = h.name || h.ticker || '—';
       const ticker = h.ticker || '';
       const buyPrice = Number(h.buy_price) || 0;
       const qty = Number(h.quantity) || 0;
       const tradeType = h.trade_type || '단타';
       const currentPrice = Number(h.current_price) || buyPrice;
-      const pnlRate = buyPrice > 0 ? ((currentPrice - buyPrice) / buyPrice) * 100 : 0;
+      const pnlRate = h.pnl_rate !== undefined && h.pnl_rate !== null
+        ? Number(h.pnl_rate)
+        : (buyPrice > 0 ? ((currentPrice - buyPrice) / buyPrice) * 100 : 0);
       const pnlAmount = (currentPrice - buyPrice) * qty;
       const pnlColor = pnlRate > 0 ? 'var(--green)' : (pnlRate < 0 ? 'var(--red)' : 'var(--text2)');
       const signedRate = (pnlRate > 0 ? '+' : '') + pnlRate.toFixed(2) + '%';
       const signedAmount = (pnlAmount > 0 ? '+' : '') + pnlAmount.toLocaleString('ko-KR') + '원';
+      const scores = findScoresForHolding(h, aiLog);
+      const panelId = `score-panel-${ticker || idx}`;
       return `
-        <div class="holding-row">
-          <div class="holding-left">
-            <div>
-              <div class="holding-ticker">${name}${ticker ? ' <span style="font-size:10px;color:var(--text3)">(' + ticker + ')</span>' : ''}</div>
-              <div class="holding-name">매수가 ${buyPrice.toLocaleString('ko-KR')}원 · ${qty}주 · ${tradeType}</div>
+        <div class="holding-block" data-ticker="${ticker}">
+          <div class="holding-row">
+            <div class="holding-left">
+              <div>
+                <div class="holding-ticker">${name}${ticker ? ' <span style="font-size:10px;color:var(--text3)">(' + ticker + ')</span>' : ''}</div>
+                <div class="holding-name">매수가 ${buyPrice.toLocaleString('ko-KR')}원 · ${qty}주 · ${tradeType}</div>
+              </div>
+            </div>
+            <div class="holding-right">
+              <div class="holding-price">현재 ${currentPrice.toLocaleString('ko-KR')}원<br><span style="font-size:10px;color:${pnlColor}">${signedRate}</span></div>
+              <div class="holding-weight" style="color:${pnlColor}">${signedAmount}</div>
             </div>
           </div>
-          <div class="holding-right">
-            <div class="holding-price">현재 ${currentPrice.toLocaleString('ko-KR')}원<br><span style="font-size:10px;color:${pnlColor}">${signedRate}</span></div>
-            <div class="holding-weight" style="color:${pnlColor}">${signedAmount}</div>
-          </div>
+          <button type="button" class="score-toggle-btn" aria-expanded="false" aria-controls="${panelId}">점수 보기</button>
+          <div class="score-panel" id="${panelId}">${buildScorePanelHtml(scores)}</div>
         </div>`;
     }).join('');
+  }
+
+  function bindHoldingsScoreToggle(container) {
+    if (!container || container.dataset.scoreToggleBound === '1') return;
+    container.dataset.scoreToggleBound = '1';
+    container.addEventListener('click', (e) => {
+      const btn = e.target.closest('.score-toggle-btn');
+      if (!btn || !container.contains(btn)) return;
+      const block = btn.closest('.holding-block');
+      const panel = block?.querySelector('.score-panel');
+      if (!panel) return;
+      const open = panel.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.textContent = open ? '점수 접기' : '점수 보기';
+    });
   }
 
   function aiLogActionClass(action) {
@@ -1249,7 +1607,10 @@
     const investedEl = document.getElementById(prefix + '-invested');
     if (investedEl) investedEl.textContent = fmtWon(SEED_MONEY);
     const holdingsEl = document.getElementById(prefix + '-holdings');
-    if (holdingsEl) holdingsEl.innerHTML = buildHoldingsHtml(t.holdings);
+    if (holdingsEl) {
+      holdingsEl.innerHTML = buildHoldingsHtml(t.holdings, t.ai_log);
+      bindHoldingsScoreToggle(holdingsEl);
+    }
     const logEl = document.getElementById(prefix + '-log');
     if (logEl) logEl.innerHTML = buildAiLogHtml(t.ai_log);
     const lastEl = document.getElementById(prefix + '-last-action');
@@ -1362,14 +1723,19 @@
     const subB = document.getElementById('summary-b-sub');
     if (subB) subB.textContent = `평가 ${fmtWon(teamB.total_value)} · 승률 ${(Number(teamB.win_rate) || 0).toFixed(0)}%`;
 
-    const totalTrades = (Number(teamA.total_trades) || 0) + (Number(teamB.total_trades) || 0);
+    const totalTrades = data.trade_round_total != null
+      ? Number(data.trade_round_total)
+      : (Number(teamA.total_trades) || 0) + (Number(teamB.total_trades) || 0);
     const tradesEl = document.getElementById('summary-trades');
     if (tradesEl) tradesEl.textContent = totalTrades + '회';
     const tradesSub = document.getElementById('summary-trades-sub');
     if (tradesSub) tradesSub.textContent = `팀A ${teamA.total_trades || 0} / 팀B ${teamB.total_trades || 0}`;
 
+    const aiTotal = data.ai_decision_total != null
+      ? Number(data.ai_decision_total)
+      : (teamA.ai_log?.length || 0) + (teamB.ai_log?.length || 0);
     const roundEl = document.getElementById('summary-round');
-    if (roundEl) roundEl.textContent = (teamA.ai_log?.length || 0) + (teamB.ai_log?.length || 0) + '건';
+    if (roundEl) roundEl.textContent = aiTotal + '건';
     const roundSub = document.getElementById('summary-round-sub');
     if (roundSub) roundSub.textContent = 'AI 판단 누적';
 
@@ -1416,33 +1782,63 @@
     body.innerHTML = timeline.map(normalizeTimelineItem).map(buildTimelineLine).join('');
   }
 
+  function isPortfolioEmpty(data) {
+    const a = data?.team_a || {};
+    const b = data?.team_b || {};
+    const hasHoldings = (a.holdings?.length || 0) + (b.holdings?.length || 0) > 0;
+    const hasLogs = (a.ai_log?.length || 0) + (b.ai_log?.length || 0) > 0;
+    return !hasHoldings && !hasLogs;
+  }
+
+  function getPortfolioData() {
+    return USE_MOCK_DATA ? { ...MOCK_PORTFOLIO } : null;
+  }
+
+  function getTimelineData() {
+    return USE_MOCK_DATA ? { ...MOCK_TIMELINE, timeline: [...MOCK_TIMELINE.timeline] } : null;
+  }
+
   async function loadTimeline() {
+    if (USE_MOCK_DATA) {
+      renderTimeline(getTimelineData());
+      return;
+    }
     try {
       const res = await fetch(TIMELINE_URL + '?t=' + Date.now());
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
-      renderTimeline(data);
+      const timeline = data.timeline || [];
+      renderTimeline(timeline.length ? data : (getTimelineData() || data));
     } catch (e) {
-      renderTimeline({ timeline: [] });
+      renderTimeline(getTimelineData() || { timeline: [] });
     }
   }
 
   async function loadPortfolio() {
+    if (USE_MOCK_DATA) {
+      renderPortfolio(getPortfolioData());
+      return;
+    }
     try {
       const res = await fetch(PORTFOLIO_URL + '?t=' + Date.now());
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
-      renderPortfolio(data);
+      renderPortfolio(isPortfolioEmpty(data) ? (getPortfolioData() || data) : data);
     } catch (e) {
-      document.getElementById('lastUpdated').textContent = '마지막 업데이트: 로드 실패';
-      renderPortfolio({ updated_at: null, team_a: {}, team_b: {} });
+      const mock = getPortfolioData();
+      if (mock) {
+        renderPortfolio(mock);
+      } else {
+        document.getElementById('lastUpdated').textContent = '마지막 업데이트: 로드 실패';
+        renderPortfolio({ updated_at: null, team_a: {}, team_b: {} });
+      }
     }
   }
 
   loadPortfolio();
-  setInterval(loadPortfolio, REFRESH_INTERVAL_MS);
+  if (!USE_MOCK_DATA) setInterval(loadPortfolio, REFRESH_INTERVAL_MS);
   loadTimeline();
-  setInterval(loadTimeline, REFRESH_INTERVAL_MS);
+  if (!USE_MOCK_DATA) setInterval(loadTimeline, REFRESH_INTERVAL_MS);
 </script>
 </body>
 </html>

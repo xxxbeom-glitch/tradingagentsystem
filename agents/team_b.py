@@ -10,7 +10,7 @@
      - Gemini Pro 매수 + R1 거절 → 관망 (보수적 원칙)
 
 할루시네이션 방지 및 편향 제거를 위한 교차 검증 구조.
-PHILOSOPHY.md의 [TEAM_A_START] ~ [TEAM_A_END] 구간을 프롬프트에 주입.
+PHILOSOPHY.md의 [TEAM_B_START] ~ [TEAM_B_END] 구간을 프롬프트에 주입.
 """
 
 from __future__ import annotations
@@ -46,14 +46,14 @@ logger = _setup_logger()
 
 
 def _load_philosophy() -> str:
-    """PHILOSOPHY.md에서 [TEAM_A_START] ~ [TEAM_A_END] 구간만 읽어서 반환."""
+    """PHILOSOPHY.md에서 [TEAM_B_START] ~ [TEAM_B_END] 구간만 읽어서 반환."""
     try:
         with open(PHILOSOPHY_PATH, "r", encoding="utf-8") as f:
             content = f.read()
-        start = content.find("[TEAM_A_START]")
-        end = content.find("[TEAM_A_END]")
+        start = content.find("[TEAM_B_START]")
+        end = content.find("[TEAM_B_END]")
         if start != -1 and end != -1:
-            return content[start + len("[TEAM_A_START]"):end].strip()
+            return content[start + len("[TEAM_B_START]"):end].strip()
         return content.strip()
     except Exception as e:
         logger.warning("PHILOSOPHY.md 로드 실패: %s", e)
@@ -94,6 +94,12 @@ SYSTEM_PROMPT_TEMPLATE = """너는 한국 주식 단타/스윙 전문 투자 에
   "entry_price": 희망 진입가 (현재가보다 낮게 설정, 관망 시 null),
   "target_price": 목표가,
   "stop_loss": 손절가,
+  "exit_reason": "익절가/목표가 설정 근거 한 줄",
+  "trailing_stop": true/false,
+  "trailing_trigger": 트레일링 스탑 발동 기준 수익률 (예: 5.0),
+  "partial_exit": true/false,
+  "partial_exit_ratio": 부분 익절 비율 (예: 0.5 = 50%),
+  "partial_exit_trigger": 부분 익절 발동 기준 수익률 (예: 5.0),
   "scores": {{
     "리스크": 0~10,
     "수급": 0~10,
@@ -125,6 +131,16 @@ SYSTEM_PROMPT_TEMPLATE = """너는 한국 주식 단타/스윙 전문 투자 에
   target_price = int(entry_price * 1.12)  # +12%
   stop_loss = int(entry_price * 0.95)     # -5%
 - 반드시 숫자로 설정할 것 (0이나 null 금지)
+- 단순 범위가 아니라 수급강도/거래량/모멘텀·리스크를 반영해 target_price·stop_loss를 조정할 수 있음
+- exit_reason에 위 조정 근거를 반드시 한 줄로 명시
+
+[팀 B 매도·트레일링·부분익절 규칙]
+- action이 "매수"일 때 partial_exit=true 권장 (검증 통과·확신 MEDIUM 이상)
+- partial_exit_ratio 기본 0.5 (+5% 도달 시 50% 부분 익절)
+- partial_exit_trigger 기본 5.0
+- trailing_stop=true 시 trailing_trigger 기본 5.0 (+5% 달성 시 손절가를 +2%로 상향)
+- 거래량 동반 음봉 시 추세 전환으로 판단 후 매도 검토
+- action이 "관망"이면 exit_reason="", trailing_stop=false, trailing_trigger=0, partial_exit=false, partial_exit_ratio=0, partial_exit_trigger=0
 
 [지정가 진입 규칙]
 - entry_price는 현재가보다 1~3% 낮게 설정
