@@ -1,14 +1,24 @@
 {
-  "updated_at": "2026-05-26 10:56:12",
+  "updated_at": "2026-05-26 11:01:56",
   "team_a": {
-    "cash": 48082,
-    "invested": 451853,
-    "total_value": 499935,
+    "cash": 29580,
+    "invested": 470353,
+    "total_value": 499933,
     "return_pct": -0.01,
     "realized_pnl": 0,
     "total_trades": 0,
     "win_rate": 0.0,
     "holdings": [
+      {
+        "ticker": "123700",
+        "name": "SJM",
+        "buy_price": 18500,
+        "quantity": 1,
+        "trade_type": "단타",
+        "target_price": 0,
+        "stop_loss": 0,
+        "bought_at": "2026-05-26 11:00:27"
+      },
       {
         "ticker": "009190",
         "name": "대양금속",
@@ -61,6 +71,21 @@
       }
     ],
     "ai_log": [
+      {
+        "time": "11:01:56",
+        "action": "관망",
+        "ticker": "009190",
+        "name": "대양금속",
+        "reason": "거래량 급증으로 모멘텀은 높지만, 외국인과 기관 매수세가 없고 시장 방향성이 중립이라 돈이 몰리는 흐름이 확인되지 않아 기다리는 것이 낫다고 판단했습니다.",
+        "confidence": "LOW",
+        "scores": {
+          "수급": 2,
+          "모멘텀": 8,
+          "섹터": 5,
+          "뉴스": 0
+        },
+        "verification": ""
+      },
       {
         "time": "10:56:12",
         "action": "매수",
@@ -118,6 +143,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "11:01:56",
+        "action": "관망",
+        "ticker": "009190",
+        "name": "대양금속",
+        "reason": "모멘텀은 확인되나, 이를 뒷받침할 외국인/기관의 수급이 전무하고 재무 안정성 점수가 낮아 팀 B의 '수급' 및 '재무' 확인 우선순위 원칙에 부합하지 않아 진입하지 않습니다.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 4,
+          "수급": 0,
+          "재무": 5,
+          "모멘텀": 7,
+          "뉴스": 0
+        },
+        "verification": "거절"
+      },
       {
         "time": "10:56:12",
         "action": "관망",
