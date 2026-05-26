@@ -153,6 +153,19 @@ def save_portfolio_snapshot(
             json.dump(data, f, ensure_ascii=False, indent=2)
 
         logger.info("portfolio.json 저장 완료")
+
+        # portfolio.json 자동 git push
+        try:
+            import subprocess
+            subprocess.run(["git", "add", "portfolio.json", "timeline.json"],
+                           cwd=ROOT_DIR, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "chore: 포트폴리오 업데이트"],
+                           cwd=ROOT_DIR, capture_output=True)
+            subprocess.run(["git", "push"],
+                           cwd=ROOT_DIR, capture_output=True)
+            logger.info("portfolio.json GitHub push 완료")
+        except Exception as e:
+            logger.error("GitHub push 실패: %s", e)
     except Exception as e:
         logger.error("portfolio.json 저장 실패: %s", e)
 
