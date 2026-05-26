@@ -1,15 +1,97 @@
 {
-  "updated_at": "",
+  "updated_at": "2026-05-26 10:55:00",
   "team_a": {
-    "cash": 500000,
-    "invested": 0,
-    "total_value": 500000,
-    "return_pct": 0.0,
+    "cash": 48082,
+    "invested": 451853,
+    "total_value": 499935,
+    "return_pct": -0.01,
     "realized_pnl": 0,
     "total_trades": 0,
     "win_rate": 0.0,
-    "holdings": [],
-    "ai_log": []
+    "holdings": [
+      {
+        "ticker": "009190",
+        "name": "대양금속",
+        "buy_price": 1703,
+        "quantity": 1,
+        "trade_type": "단타",
+        "target_price": 0,
+        "stop_loss": 0,
+        "bought_at": "2026-05-26 10:54:43"
+      },
+      {
+        "ticker": "025530",
+        "name": "SJM홀딩스",
+        "buy_price": 3500,
+        "quantity": 9,
+        "trade_type": "단타",
+        "target_price": 0,
+        "stop_loss": 0,
+        "bought_at": "2026-05-26 10:41:04"
+      },
+      {
+        "ticker": "123700",
+        "name": "SJM",
+        "buy_price": 9200,
+        "quantity": 5,
+        "trade_type": "단타",
+        "target_price": 0,
+        "stop_loss": 0,
+        "bought_at": "2026-05-26 10:40:28"
+      },
+      {
+        "ticker": "005680",
+        "name": "삼영전자",
+        "buy_price": 8200,
+        "quantity": 9,
+        "trade_type": "단타",
+        "target_price": 0,
+        "stop_loss": 0,
+        "bought_at": "2026-05-26 10:34:51"
+      },
+      {
+        "ticker": "019180",
+        "name": "티에이치엔",
+        "buy_price": 6950,
+        "quantity": 43,
+        "trade_type": "단타",
+        "target_price": 0,
+        "stop_loss": 0,
+        "bought_at": "2026-05-26 10:20:01"
+      }
+    ],
+    "ai_log": [
+      {
+        "time": "10:55:00",
+        "action": "매수",
+        "ticker": "009190",
+        "name": "대양금속",
+        "reason": "거래량이 폭발적으로 늘고 가격이 빠르게 올라 돈이 몰리는 흐름입니다. 수급 점수는 낮지만 단기 모멘텀이 확실하고, 스피드팀은 기회를 놓치지 않고 일단 타는 게 원칙입니다.",
+        "confidence": "LOW",
+        "scores": {
+          "수급": 0,
+          "모멘텀": 10,
+          "섹터": 0,
+          "뉴스": 0
+        },
+        "verification": ""
+      },
+      {
+        "time": "10:49:16",
+        "action": "관망",
+        "ticker": "009190",
+        "name": "대양금속",
+        "reason": "거래량과 가격 급등으로 모멘텀은 좋지만, 외국인과 기관의 매수세가 전혀 없고 수급 점수가 0입니다. 팀 A는 '수급'을 1순위로 보기 때문에, 이 종목은 돈이 몰리는 흐름이 아니라 개인 투자자들의 일시적 관심으로 판단해 진입을 보류합니다.",
+        "confidence": "LOW",
+        "scores": {
+          "수급": 0,
+          "모멘텀": 10,
+          "섹터": 5,
+          "뉴스": 0
+        },
+        "verification": ""
+      }
+    ]
   },
   "team_b": {
     "cash": 500000,
@@ -20,6 +102,39 @@
     "total_trades": 0,
     "win_rate": 0.0,
     "holdings": [],
-    "ai_log": []
+    "ai_log": [
+      {
+        "time": "10:55:00",
+        "action": "관망",
+        "ticker": "009190",
+        "name": "대양금속",
+        "reason": "강한 거래량과 함께 주가가 급등했지만, 이를 뒷받침하는 외국인이나 기관의 매수세가 없어 현재의 상승세는 지속되기 어렵다고 판단합니다.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 3,
+          "수급": 0,
+          "재무": 5,
+          "모멘텀": 8,
+          "뉴스": 0
+        },
+        "verification": "거절"
+      },
+      {
+        "time": "10:49:16",
+        "action": "관망",
+        "ticker": "009190",
+        "name": "대양금속",
+        "reason": "단기 거래량이 급증해 주목받고 있지만, 외국인이나 기관 같은 '큰 손'의 매수세가 없어 상승세가 이어질지 불확실합니다. 잃지 않는 투자를 위해 확실한 매수 주체가 나타날 때까지 지켜보는 것이 안전합니다.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 7,
+          "수급": 3,
+          "재무": 5,
+          "모멘텀": 8,
+          "뉴스": 4
+        },
+        "verification": "거절"
+      }
+    ]
   }
 }
