@@ -18,11 +18,12 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 import requests
 from data.dart import get_disclosures_by_ticker
+from data.market import get_market_ohlcv, scan_candidates
 from data.realtime import KISClient
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -219,6 +220,23 @@ def check_exit_conditions(
     return None
 
 
+def get_prev_trading_day() -> str:
+    """가장 최근 영업일 반환 (주말 + 데이터 없는 날 제외)."""
+    from pykrx import stock
+    date = datetime.now() - timedelta(days=1)
+    while True:
+        if date.weekday() < 5:  # 평일
+            date_str = date.strftime("%Y%m%d")
+            try:
+                df = stock.get_market_ohlcv_by_ticker(date_str)
+                # 첫 종목 거래량이 0이면 휴장일
+                if len(df) > 0 and df.iloc[0]["거래량"] > 0:
+                    return date_str
+            except Exception:
+                pass
+        date -= timedelta(days=1)
+
+
 def run_cycle() -> None:
     """메인 실행 사이클 1회."""
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -243,9 +261,6 @@ def run_cycle() -> None:
 
     # ── 2. 전체 종목 스캔 ──
     try:
-        from data.market import get_market_ohlcv, scan_candidates
-        from datetime import datetime, timedelta
-
         logger.info("전체 종목 스캔 시작")
 
         # 오늘 데이터
@@ -253,12 +268,6 @@ def run_cycle() -> None:
         ohlcv = get_market_ohlcv(today)
 
         # 가장 최근 영업일 (전일) 데이터
-        def get_prev_trading_day() -> str:
-            date = datetime.now() - timedelta(days=1)
-            while date.weekday() >= 5:  # 토(5), 일(6) 건너뜀
-                date -= timedelta(days=1)
-            return date.strftime("%Y%m%d")
-
         prev_date = get_prev_trading_day()
         prev_ohlcv = get_market_ohlcv(prev_date)
 

@@ -47,6 +47,18 @@ def check_institution_buy_turn(
     }
 
 
+def check_foreign_buy_today(
+    ticker: str,
+    today_foreign_net: int,
+) -> dict:
+    """당일 외국인 순매수 여부 (단타용)."""
+    triggered = today_foreign_net > 0
+    return {
+        "triggered": triggered,
+        "today": int(today_foreign_net),
+    }
+
+
 def check_foreign_consecutive_buy(
     ticker: str,
     net_buy_list: list[int],
@@ -79,12 +91,33 @@ def check_52week_high(
     current = int(current_price)
     high = int(high_52week)
     ratio = current / high if high > 0 else 0.0
-    triggered = high > 0 and current >= high * 0.98
+    triggered = high > 0 and current >= high * 0.95
     return {
         "triggered": triggered,
         "current": current,
         "high_52week": high,
         "ratio": ratio,
+    }
+
+
+def check_gap_surge(
+    ticker: str,
+    current_open: int,
+    prev_close: int,
+    threshold: float = 0.10,
+) -> dict:
+    """시가가 전일 종가 대비 threshold 이상 갭 상승이면 triggered (매수 제외 필터).
+    triggered=True이면 매수 제외 대상.
+    """
+    if prev_close <= 0:
+        return {"triggered": False, "gap_rate": 0.0}
+    gap_rate = (current_open - prev_close) / prev_close
+    triggered = gap_rate >= threshold
+    return {
+        "triggered": triggered,
+        "gap_rate": round(gap_rate, 4),
+        "current_open": int(current_open),
+        "prev_close": int(prev_close),
     }
 
 

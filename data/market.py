@@ -18,8 +18,10 @@ from triggers.conditions import (
     check_volume_surge,
     check_institution_buy_turn,
     check_foreign_consecutive_buy,
+    check_foreign_buy_today,
     check_sector_top3,
     check_52week_high,
+    check_gap_surge,
     count_triggers,
 )
 
@@ -111,6 +113,9 @@ def scan_candidates(
         ...
     ]
     """
+    # TODO: 테스트 완료 후 원래 조건으로 복구 필요
+    # - 가격 상한: 59,000원 이하
+    # - 트리거: 2개 이상
     candidates = []
 
     for ticker, data in ohlcv.items():
@@ -119,9 +124,16 @@ def scan_candidates(
             volume = int(data.get("거래량", 0))
             change_rate = float(data.get("등락률", 0))
 
+            # 갭 상승 10% 이상 종목 제외
+            prev_close = int(prev_ohlcv[ticker].get("종가", 0)) if prev_ohlcv and ticker in prev_ohlcv else 0
+            current_open = int(data.get("시가", 0))
+            gap = check_gap_surge(ticker, current_open, prev_close)
+            if gap["triggered"]:
+                continue  # 갭 상승 종목 제외
+
             # 신규 진입 가격 상한 필터
-            if current_price <= 0 or current_price > MAX_ENTRY_PRICE:
-                continue
+            # if current_price <= 0 or current_price > MAX_ENTRY_PRICE:
+            #     continue
 
             # 거래량 없는 종목 제외
             if volume == 0:
@@ -147,7 +159,14 @@ def scan_candidates(
             if r["triggered"]:
                 trigger_names.append("기관순매수전환")
 
-            # 3. 외국인 3일 연속 순매수
+            # 3-1. 외국인 당일 순매수 (단타용)
+            foreign_today = foreign_net_map.get(ticker, 0) if foreign_net_map else 0
+            r = check_foreign_buy_today(ticker, foreign_today)
+            trigger_results.append(r)
+            if r["triggered"]:
+                trigger_names.append("외국인당일순매수")
+
+            # 3-2. 외국인 3일 연속 순매수 (스윙용) - 기존 유지
             foreign_list = []
             if foreign_net_map and ticker in foreign_net_map:
                 foreign_list = [foreign_net_map[ticker]]
@@ -173,7 +192,7 @@ def scan_candidates(
             trigger_count = count_triggers(trigger_results)
 
             # 트리거 2개 이상 충족 종목만
-            if trigger_count >= 2:
+            if trigger_count >= 1:  # 테스트용 (원래 >= 2)
                 name = stock.get_market_ticker_name(ticker) or ticker
                 candidates.append({
                     "ticker": ticker,
