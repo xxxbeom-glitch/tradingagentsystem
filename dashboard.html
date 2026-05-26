@@ -484,6 +484,7 @@
   </div>
   <div class="header-right">
     <span class="status-badge">▶ 장중 감시중</span>
+    <span class="header-time mono" id="lastUpdated">마지막 업데이트: —</span>
     <span class="header-time mono" id="clock">--:--:--</span>
   </div>
 </header>
@@ -495,23 +496,23 @@
   <div class="summary-bar">
     <div class="summary-item">
       <div class="summary-label">팀 A 누적 수익률</div>
-      <div class="summary-value pnl-positive">+6.8%</div>
-      <div class="summary-sub">시드 500,000원 기준</div>
+      <div class="summary-value" id="summary-a-return">—</div>
+      <div class="summary-sub" id="summary-a-sub">—</div>
     </div>
     <div class="summary-item">
       <div class="summary-label">팀 B 누적 수익률</div>
-      <div class="summary-value pnl-positive">+9.2%</div>
-      <div class="summary-sub">시드 500,000원 기준</div>
+      <div class="summary-value" id="summary-b-return">—</div>
+      <div class="summary-sub" id="summary-b-sub">—</div>
     </div>
     <div class="summary-item">
       <div class="summary-label">총 진행 회차</div>
-      <div class="summary-value" style="color:var(--text);">5회</div>
-      <div class="summary-sub">팀 B 3승 / 팀 A 2승</div>
+      <div class="summary-value" id="summary-trades" style="color:var(--text);">—</div>
+      <div class="summary-sub" id="summary-trades-sub">—</div>
     </div>
     <div class="summary-item">
       <div class="summary-label">현재 라운드</div>
-      <div class="summary-value" style="color:var(--amber);">6회차</div>
-      <div class="summary-sub">진행중 — 5/25 시작</div>
+      <div class="summary-value" id="summary-round" style="color:var(--amber);">—</div>
+      <div class="summary-sub" id="summary-round-sub">—</div>
     </div>
   </div>
 
@@ -530,7 +531,7 @@
           <div class="team-engines">Gemini Flash 2.0 → DeepSeek V3</div>
         </div>
         <div class="team-pnl">
-          <div class="pnl-value pnl-positive">+3.4%</div>
+          <div class="pnl-value" id="team-a-return">—</div>
           <div class="pnl-sub">이번 회차</div>
         </div>
       </div>
@@ -538,46 +539,21 @@
       <div class="team-meta">
         <div class="meta-item">
           <div class="meta-label">시드머니</div>
-          <div class="meta-value">500,000원</div>
+          <div class="meta-value" id="team-a-invested">—</div>
         </div>
         <div class="meta-item">
           <div class="meta-label">현재 평가금액</div>
-          <div class="meta-value" style="color:var(--green);">517,000원</div>
+          <div class="meta-value" id="team-a-total" style="color:var(--green);">—</div>
         </div>
         <div class="meta-item">
           <div class="meta-label">가용 현금</div>
-          <div class="meta-value">72,000원</div>
+          <div class="meta-value" id="team-a-cash">—</div>
         </div>
       </div>
 
       <div class="holdings">
         <div class="holdings-label">보유 종목</div>
-        <div class="holding-row">
-          <div class="holding-left">
-            <div>
-              <div class="holding-ticker">에코프로</div>
-              <div class="holding-name">매수가 82,400원</div>
-            </div>
-          </div>
-          <div class="holding-right">
-            <div class="holding-price">현재 87,600원<br><span style="font-size:10px;color:var(--text3)">+6.3%</span></div>
-            <div class="holding-badge badge-up">+6.3%</div>
-            <div class="holding-weight">45%</div>
-          </div>
-        </div>
-        <div class="holding-row">
-          <div class="holding-left">
-            <div>
-              <div class="holding-ticker">한화시스템</div>
-              <div class="holding-name">매수가 21,050원</div>
-            </div>
-          </div>
-          <div class="holding-right">
-            <div class="holding-price">현재 21,350원<br><span style="font-size:10px;color:var(--text3)">+1.4%</span></div>
-            <div class="holding-badge badge-up">+1.4%</div>
-            <div class="holding-weight">41%</div>
-          </div>
-        </div>
+        <div id="team-a-holdings"></div>
       </div>
 
       <div class="agent-status">
@@ -585,19 +561,12 @@
           <div class="status-dot dot-active"></div>
           <span class="status-text">트리거 감시중</span>
         </div>
-        <span class="last-action">마지막 판단 10:47</span>
+        <span class="last-action" id="team-a-last-action">—</span>
       </div>
 
       <div class="log-section">
         <div class="log-label">AI 판단 로그</div>
-        <div class="log-entry entry-buy">
-          <div class="log-time">10:47 — DeepSeek V3 매수 결정</div>
-          <div class="log-text">거래량 <strong>340%</strong> 급등 + 기관 순매수 전환 감지. 에코프로 2차전지 테마 강세 지속 판단 → <strong>즉시 매수 집행</strong></div>
-        </div>
-        <div class="log-entry">
-          <div class="log-time">09:31 — Gemini Flash 스캔 완료</div>
-          <div class="log-text">방산 / 2차전지 섹터 자금 집중 확인. 외국인 순매수 상위 5종목 후보 풀 구성</div>
-        </div>
+        <div id="team-a-log"></div>
       </div>
     </div>
 
@@ -612,7 +581,7 @@
           <div class="team-engines">Gemini Pro 2.5 → DeepSeek R1</div>
         </div>
         <div class="team-pnl">
-          <div class="pnl-value pnl-positive">+1.9%</div>
+          <div class="pnl-value" id="team-b-return">—</div>
           <div class="pnl-sub">이번 회차</div>
         </div>
       </div>
@@ -620,46 +589,21 @@
       <div class="team-meta">
         <div class="meta-item">
           <div class="meta-label">시드머니</div>
-          <div class="meta-value">500,000원</div>
+          <div class="meta-value" id="team-b-invested">—</div>
         </div>
         <div class="meta-item">
           <div class="meta-label">현재 평가금액</div>
-          <div class="meta-value" style="color:var(--green);">509,500원</div>
+          <div class="meta-value" id="team-b-total" style="color:var(--green);">—</div>
         </div>
         <div class="meta-item">
           <div class="meta-label">가용 현금</div>
-          <div class="meta-value">158,000원</div>
+          <div class="meta-value" id="team-b-cash">—</div>
         </div>
       </div>
 
       <div class="holdings">
         <div class="holdings-label">보유 종목</div>
-        <div class="holding-row">
-          <div class="holding-left">
-            <div>
-              <div class="holding-ticker">LG에너지솔루션</div>
-              <div class="holding-name">매수가 342,000원</div>
-            </div>
-          </div>
-          <div class="holding-right">
-            <div class="holding-price">현재 349,500원<br><span style="font-size:10px;color:var(--text3)">+2.2%</span></div>
-            <div class="holding-badge badge-up">+2.2%</div>
-            <div class="holding-weight">34%</div>
-          </div>
-        </div>
-        <div class="holding-row">
-          <div class="holding-left">
-            <div>
-              <div class="holding-ticker">현대로템</div>
-              <div class="holding-name">매수가 58,700원</div>
-            </div>
-          </div>
-          <div class="holding-right">
-            <div class="holding-price">현재 57,400원<br><span style="font-size:10px;color:var(--text3)">-2.2%</span></div>
-            <div class="holding-badge badge-down">-2.2%</div>
-            <div class="holding-weight">32%</div>
-          </div>
-        </div>
+        <div id="team-b-holdings"></div>
       </div>
 
       <div class="agent-status">
@@ -667,23 +611,12 @@
           <div class="status-dot dot-wait"></div>
           <span class="status-text">검증 대기중</span>
         </div>
-        <span class="last-action">마지막 판단 11:02</span>
+        <span class="last-action" id="team-b-last-action">—</span>
       </div>
 
       <div class="log-section">
         <div class="log-label">AI 판단 로그</div>
-        <div class="log-entry entry-verify">
-          <div class="log-time">11:02 — DeepSeek R1 검증 통과</div>
-          <div class="log-text">후보 3종목 반론 검토 완료. <strong>현대로템 공매도 잔고 증가</strong> 주의 기록 후 조건부 승인. LG에너지솔루션 수급 이상 없음 → <strong>매수 집행</strong></div>
-        </div>
-        <div class="log-entry entry-sell" style="border-left-color:var(--red)">
-          <div class="log-time">10:55 — DeepSeek R1 1종목 거절</div>
-          <div class="log-text"><strong>포스코퓨처엠</strong> — DART 최근 공시 주의 항목 발견. 매수 거절 처리</div>
-        </div>
-        <div class="log-entry">
-          <div class="log-time">10:30 — Gemini Pro 2.5 분석 완료</div>
-          <div class="log-text">수급·차트·뉴스 종합 후 4종목 후보 풀 전달. 방산 테마 외국인 3일 연속 순매수 확인</div>
-        </div>
+        <div id="team-b-log"></div>
       </div>
     </div>
 
@@ -724,48 +657,9 @@
             <th>승</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="rounds-tbody">
           <tr>
-            <td><span class="round-num">#1</span></td>
-            <td><span class="round-date">5/12</span></td>
-            <td><span class="round-pnl pnl-positive">+4.6%</span></td>
-            <td><span class="round-pnl pnl-positive">+2.1%</span></td>
-            <td><span class="win-badge win-a">A</span></td>
-          </tr>
-          <tr>
-            <td><span class="round-num">#2</span></td>
-            <td><span class="round-date">5/14</span></td>
-            <td><span class="round-pnl pnl-negative">-1.2%</span></td>
-            <td><span class="round-pnl pnl-positive">+3.4%</span></td>
-            <td><span class="win-badge win-b">B</span></td>
-          </tr>
-          <tr>
-            <td><span class="round-num">#3</span></td>
-            <td><span class="round-date">5/16</span></td>
-            <td><span class="round-pnl pnl-positive">+2.1%</span></td>
-            <td><span class="round-pnl pnl-positive">+1.8%</span></td>
-            <td><span class="win-badge win-a">A</span></td>
-          </tr>
-          <tr>
-            <td><span class="round-num">#4</span></td>
-            <td><span class="round-date">5/20</span></td>
-            <td><span class="round-pnl pnl-positive">+1.3%</span></td>
-            <td><span class="round-pnl pnl-positive">+1.9%</span></td>
-            <td><span class="win-badge win-b">B</span></td>
-          </tr>
-          <tr>
-            <td><span class="round-num">#5</span></td>
-            <td><span class="round-date">5/22</span></td>
-            <td><span class="round-pnl pnl-negative">-0.8%</span></td>
-            <td><span class="round-pnl pnl-positive">+0.0%</span></td>
-            <td><span class="win-badge win-b">B</span></td>
-          </tr>
-          <tr>
-            <td><span class="round-num">#6</span></td>
-            <td><span class="round-date">5/25</span></td>
-            <td><span class="round-pnl pnl-positive">+3.4%</span></td>
-            <td><span class="round-pnl pnl-positive">+1.9%</span></td>
-            <td><span class="in-progress">진행중…</span></td>
+            <td colspan="5" style="text-align:center;color:var(--text3);padding:16px;">회차 데이터 없음</td>
           </tr>
         </tbody>
       </table>
@@ -776,7 +670,11 @@
 </main>
 
 <script>
-  // 시계
+  const PORTFOLIO_URL = 'https://raw.githubusercontent.com/xxxbeom-glitch/tradingagentsystem/main/portfolio.json';
+  const REFRESH_INTERVAL_MS = 30000;
+
+  let returnsChart = null;
+
   function tick() {
     const now = new Date();
     document.getElementById('clock').textContent =
@@ -785,74 +683,255 @@
   tick();
   setInterval(tick, 1000);
 
-  // 수익률 차트
-  const ctx = document.getElementById('returnsChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['시작', '1회차', '2회차', '3회차', '4회차', '5회차', '현재'],
-      datasets: [
-        {
-          label: '팀 A',
-          data: [0, 4.6, 3.3, 5.5, 6.9, 6.0, 6.8],
-          borderColor: '#ffb84d',
-          backgroundColor: 'rgba(255,184,77,0.06)',
-          borderWidth: 2,
-          pointBackgroundColor: '#ffb84d',
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          fill: true,
-          tension: 0.4
+  function fmtWon(v) {
+    return Number(v || 0).toLocaleString('ko-KR') + '원';
+  }
+
+  function fmtPctSigned(v) {
+    const n = Number(v) || 0;
+    return (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
+  }
+
+  function pnlClass(v) {
+    return (Number(v) || 0) >= 0 ? 'pnl-positive' : 'pnl-negative';
+  }
+
+  function setPnlEl(el, value) {
+    if (!el) return;
+    el.textContent = fmtPctSigned(value);
+    el.className = 'pnl-value ' + pnlClass(value);
+  }
+
+  function setSummaryPnlEl(el, value) {
+    if (!el) return;
+    el.textContent = fmtPctSigned(value);
+    el.className = 'summary-value ' + pnlClass(value);
+  }
+
+  function buildHoldingsHtml(holdings) {
+    if (!holdings || holdings.length === 0) {
+      return '<div class="holding-row" style="justify-content:center;color:var(--text3);font-size:12px;padding:12px 0;">보유 종목 없음</div>';
+    }
+    return holdings.map(h => {
+      const name = h.name || h.ticker || '—';
+      const ticker = h.ticker || '';
+      const buyPrice = Number(h.buy_price) || 0;
+      const qty = Number(h.quantity) || 0;
+      const tradeType = h.trade_type || '단타';
+      const target = Number(h.target_price) || 0;
+      const stop = Number(h.stop_loss) || 0;
+      return `
+        <div class="holding-row">
+          <div class="holding-left">
+            <div>
+              <div class="holding-ticker">${name}${ticker ? ' <span style="font-size:10px;color:var(--text3)">(' + ticker + ')</span>' : ''}</div>
+              <div class="holding-name">매수가 ${buyPrice.toLocaleString('ko-KR')}원 · ${qty}주 · ${tradeType}</div>
+            </div>
+          </div>
+          <div class="holding-right">
+            <div class="holding-price">목표 ${target ? target.toLocaleString('ko-KR') + '원' : '—'}<br><span style="font-size:10px;color:var(--text3)">손절 ${stop ? stop.toLocaleString('ko-KR') + '원' : '—'}</span></div>
+            <div class="holding-weight">${h.bought_at || ''}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function logEntryClass(entry) {
+    const action = entry.action || '';
+    if (action === '매수') return 'entry-buy';
+    if (action === '매도') return 'entry-sell';
+    if (entry.verification) return 'entry-verify';
+    return '';
+  }
+
+  function buildAiLogHtml(aiLog) {
+    if (!aiLog || aiLog.length === 0) {
+      return '<div class="log-entry"><div class="log-text" style="color:var(--text3);">판단 기록 없음</div></div>';
+    }
+    return aiLog.map(entry => {
+      const cls = logEntryClass(entry);
+      const name = entry.name || '';
+      const ticker = entry.ticker || '';
+      const label = [entry.time, entry.action, name || ticker].filter(Boolean).join(' — ');
+      const verification = entry.verification ? `<br>검증: <strong>${entry.verification}</strong>` : '';
+      const confidence = entry.confidence ? ` · 신뢰도 ${entry.confidence}` : '';
+      const reason = entry.reason || '';
+      return `
+        <div class="log-entry ${cls}">
+          <div class="log-time">${label}${confidence}</div>
+          <div class="log-text">${reason}${verification}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function buildCumulativeSeries(aiLog, returnPct) {
+    const logs = [...(aiLog || [])].reverse();
+    const target = Number(returnPct) || 0;
+    if (logs.length === 0) {
+      return { labels: ['시작', '현재'], data: [0, target] };
+    }
+    const labels = ['시작', ...logs.map(l => l.time || '—'), '현재'];
+    const data = [0];
+    for (let i = 0; i < logs.length; i++) {
+      data.push(target * (i + 1) / logs.length);
+    }
+    data.push(target);
+    return { labels, data };
+  }
+
+  function renderTeam(prefix, team) {
+    const t = team || {};
+    setPnlEl(document.getElementById(prefix + '-return'), t.return_pct);
+    const totalEl = document.getElementById(prefix + '-total');
+    if (totalEl) totalEl.textContent = fmtWon(t.total_value);
+    const cashEl = document.getElementById(prefix + '-cash');
+    if (cashEl) cashEl.textContent = fmtWon(t.cash);
+    const investedEl = document.getElementById(prefix + '-invested');
+    if (investedEl) investedEl.textContent = fmtWon(t.invested);
+    const holdingsEl = document.getElementById(prefix + '-holdings');
+    if (holdingsEl) holdingsEl.innerHTML = buildHoldingsHtml(t.holdings);
+    const logEl = document.getElementById(prefix + '-log');
+    if (logEl) logEl.innerHTML = buildAiLogHtml(t.ai_log);
+    const lastEl = document.getElementById(prefix + '-last-action');
+    if (lastEl) {
+      const latest = (t.ai_log && t.ai_log[0]) ? t.ai_log[0] : null;
+      lastEl.textContent = latest
+        ? `마지막 판단 ${latest.time || '—'} · ${latest.action || ''}`
+        : '마지막 판단 —';
+    }
+    return buildCumulativeSeries(t.ai_log, t.return_pct);
+  }
+
+  function updateChart(seriesA, seriesB) {
+    const labels = seriesA.labels.length >= seriesB.labels.length ? seriesA.labels : seriesB.labels;
+    if (!returnsChart) {
+      const ctx = document.getElementById('returnsChart').getContext('2d');
+      returnsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '팀 A',
+              data: seriesA.data,
+              borderColor: '#ffb84d',
+              backgroundColor: 'rgba(255,184,77,0.06)',
+              borderWidth: 2,
+              pointBackgroundColor: '#ffb84d',
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              fill: true,
+              tension: 0.4
+            },
+            {
+              label: '팀 B',
+              data: seriesB.data,
+              borderColor: '#a78bfa',
+              backgroundColor: 'rgba(167,139,250,0.06)',
+              borderWidth: 2,
+              borderDash: [5, 3],
+              pointBackgroundColor: '#a78bfa',
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              fill: true,
+              tension: 0.4
+            }
+          ]
         },
-        {
-          label: '팀 B',
-          data: [0, 2.1, 5.6, 7.5, 9.5, 9.5, 9.2],
-          borderColor: '#a78bfa',
-          backgroundColor: 'rgba(167,139,250,0.06)',
-          borderWidth: 2,
-          borderDash: [5, 3],
-          pointBackgroundColor: '#a78bfa',
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          fill: true,
-          tension: 0.4
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#181c22',
-          borderColor: 'rgba(255,255,255,0.1)',
-          borderWidth: 1,
-          titleColor: '#8890a0',
-          bodyColor: '#e8eaf0',
-          callbacks: {
-            label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%'
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#181c22',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              titleColor: '#8890a0',
+              bodyColor: '#e8eaf0',
+              callbacks: {
+                label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%'
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,0.04)' },
+              ticks: { color: '#545c6a', font: { size: 11 } },
+              border: { color: 'rgba(255,255,255,0.07)' }
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.04)' },
+              ticks: {
+                color: '#545c6a',
+                font: { size: 11 },
+                callback: v => v.toFixed(1) + '%'
+              },
+              border: { color: 'rgba(255,255,255,0.07)' }
+            }
           }
         }
-      },
-      scales: {
-        x: {
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: { color: '#545c6a', font: { size: 11 } },
-          border: { color: 'rgba(255,255,255,0.07)' }
-        },
-        y: {
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: {
-            color: '#545c6a',
-            font: { size: 11 },
-            callback: v => v.toFixed(1) + '%'
-          },
-          border: { color: 'rgba(255,255,255,0.07)' }
-        }
-      }
+      });
+      return;
     }
-  });
+    returnsChart.data.labels = labels;
+    returnsChart.data.datasets[0].data = padSeries(seriesA.data, labels.length);
+    returnsChart.data.datasets[1].data = padSeries(seriesB.data, labels.length);
+    returnsChart.update();
+  }
+
+  function padSeries(data, len) {
+    const out = [...data];
+    while (out.length < len) out.push(out[out.length - 1] ?? 0);
+    return out.slice(0, len);
+  }
+
+  function renderPortfolio(data) {
+    const teamA = data.team_a || {};
+    const teamB = data.team_b || {};
+
+    document.getElementById('lastUpdated').textContent =
+      '마지막 업데이트: ' + (data.updated_at || '—');
+
+    setSummaryPnlEl(document.getElementById('summary-a-return'), teamA.return_pct);
+    setSummaryPnlEl(document.getElementById('summary-b-return'), teamB.return_pct);
+
+    const subA = document.getElementById('summary-a-sub');
+    if (subA) subA.textContent = `평가 ${fmtWon(teamA.total_value)} · 승률 ${(Number(teamA.win_rate) || 0).toFixed(0)}%`;
+
+    const subB = document.getElementById('summary-b-sub');
+    if (subB) subB.textContent = `평가 ${fmtWon(teamB.total_value)} · 승률 ${(Number(teamB.win_rate) || 0).toFixed(0)}%`;
+
+    const totalTrades = (Number(teamA.total_trades) || 0) + (Number(teamB.total_trades) || 0);
+    const tradesEl = document.getElementById('summary-trades');
+    if (tradesEl) tradesEl.textContent = totalTrades + '회';
+    const tradesSub = document.getElementById('summary-trades-sub');
+    if (tradesSub) tradesSub.textContent = `팀A ${teamA.total_trades || 0} / 팀B ${teamB.total_trades || 0}`;
+
+    const roundEl = document.getElementById('summary-round');
+    if (roundEl) roundEl.textContent = (teamA.ai_log?.length || 0) + (teamB.ai_log?.length || 0) + '건';
+    const roundSub = document.getElementById('summary-round-sub');
+    if (roundSub) roundSub.textContent = 'AI 판단 누적';
+
+    const seriesA = renderTeam('team-a', teamA);
+    const seriesB = renderTeam('team-b', teamB);
+    updateChart(seriesA, seriesB);
+  }
+
+  async function loadPortfolio() {
+    try {
+      const res = await fetch(PORTFOLIO_URL + '?t=' + Date.now());
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      renderPortfolio(data);
+    } catch (e) {
+      document.getElementById('lastUpdated').textContent = '마지막 업데이트: 로드 실패';
+      renderPortfolio({ updated_at: null, team_a: {}, team_b: {} });
+    }
+  }
+
+  loadPortfolio();
+  setInterval(loadPortfolio, REFRESH_INTERVAL_MS);
 </script>
 </body>
 </html>

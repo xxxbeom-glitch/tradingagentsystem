@@ -47,6 +47,7 @@ def _setup_logger() -> logging.Logger:
 logger = _setup_logger()
 
 TIMELINE_PATH = os.path.join(ROOT_DIR, "timeline.json")
+PORTFOLIO_PATH = os.path.join(ROOT_DIR, "portfolio.json")
 
 
 def add_timeline_event(event_type: str, text: str) -> None:
@@ -71,6 +72,88 @@ def add_timeline_event(event_type: str, text: str) -> None:
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.error("타임라인 이벤트 추가 실패: %s", e)
+
+
+def save_portfolio_snapshot(
+    result_a: dict | None = None,
+    result_b: dict | None = None,
+) -> None:
+    """포트폴리오/잔고/AI판단 로그를 portfolio.json에 저장."""
+    try:
+        from tracker.portfolio import get_balance, get_portfolio, get_pnl_summary
+
+        def build_team_data(team: str, ai_result: dict | None) -> dict:
+            balance = get_balance(team)
+            holdings = get_portfolio(team)
+            pnl = get_pnl_summary(team)
+
+            # 보유 종목 정리
+            holding_list = []
+            for h in holdings:
+                holding_list.append({
+                    "ticker": h.get("ticker", ""),
+                    "name": h.get("name", ""),
+                    "buy_price": h.get("buy_price", 0),
+                    "quantity": h.get("buy_quantity", 0),
+                    "trade_type": h.get("trade_type", "단타"),
+                    "target_price": h.get("target_price", 0),
+                    "stop_loss": h.get("stop_loss", 0),
+                    "bought_at": h.get("bought_at", ""),
+                })
+
+            # AI 판단 로그
+            ai_log = []
+            if ai_result:
+                ai_log.append({
+                    "time": datetime.now().strftime("%H:%M:%S"),
+                    "action": ai_result.get("action", ""),
+                    "ticker": ai_result.get("ticker", ""),
+                    "name": ai_result.get("name", ""),
+                    "reason": ai_result.get("reason", ""),
+                    "confidence": ai_result.get("confidence", ""),
+                    "scores": ai_result.get("scores", {}),
+                    "verification": ai_result.get("verification", ""),
+                })
+
+            return {
+                "cash": balance.get("cash", 0),
+                "invested": balance.get("invested", 0),
+                "total_value": balance.get("total_value", 0),
+                "return_pct": balance.get("return_pct", 0.0),
+                "realized_pnl": balance.get("realized_pnl", 0),
+                "total_trades": pnl.get("total_trades", 0),
+                "win_rate": pnl.get("win_rate", 0.0),
+                "holdings": holding_list,
+                "ai_log": ai_log,
+            }
+
+        try:
+            with open(PORTFOLIO_PATH, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+        except Exception:
+            existing = {"team_a": {"ai_log": []}, "team_b": {"ai_log": []}}
+
+        team_a_data = build_team_data("A", result_a)
+        team_b_data = build_team_data("B", result_b)
+
+        # AI 로그는 누적 (최대 20개)
+        prev_a_log = existing.get("team_a", {}).get("ai_log", [])
+        prev_b_log = existing.get("team_b", {}).get("ai_log", [])
+        team_a_data["ai_log"] = (team_a_data["ai_log"] + prev_a_log)[:20]
+        team_b_data["ai_log"] = (team_b_data["ai_log"] + prev_b_log)[:20]
+
+        data = {
+            "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "team_a": team_a_data,
+            "team_b": team_b_data,
+        }
+
+        with open(PORTFOLIO_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        logger.info("portfolio.json 저장 완료")
+    except Exception as e:
+        logger.error("portfolio.json 저장 실패: %s", e)
 
 
 def get_current_time_slot() -> str:
@@ -345,6 +428,11 @@ def run_cycle() -> None:
                     add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인)")
             except Exception as e:
                 logger.error("팀 B 실패 | ticker=%s error=%s", ticker, e)
+
+    save_portfolio_snapshot(
+        result_a=result_a if 'result_a' in locals() else None,
+        result_b=result_b if 'result_b' in locals() else None,
+    )
 
     logger.info("사이클 완료 | %s", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
