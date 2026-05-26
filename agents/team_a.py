@@ -16,7 +16,7 @@ import os
 from datetime import datetime
 from typing import Any
 
-import google.generativeai as genai
+import google.genai as genai
 from openai import OpenAI
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -133,8 +133,7 @@ USER_PROMPT_TEMPLATE = """현재 시장 데이터:
 def analyze_with_gemini(stock_data: dict[str, Any]) -> str:
     """Gemini Flash로 종목 분석. 분석 결과 텍스트 반환."""
     try:
-        genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         philosophy = _load_philosophy()
@@ -154,8 +153,11 @@ def analyze_with_gemini(stock_data: dict[str, Any]) -> str:
             available_cash=stock_data.get("available_cash", 1000000),
         )
 
-        response = model.generate_content(f"{system}\n\n{user}")
-        result = response.text.strip()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"{system}\n\n{user}",
+        )
+        result = (response.text or "").strip()
         logger.info("Gemini 분석 완료 | ticker=%s | result=%s", stock_data.get("ticker"), result[:200])
         return result
 

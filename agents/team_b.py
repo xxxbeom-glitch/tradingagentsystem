@@ -22,7 +22,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Any
 
-import google.generativeai as genai
+import google.genai as genai
 from openai import OpenAI
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -218,8 +218,7 @@ def analyze_with_deepseek_v3(stock_data: dict[str, Any]) -> str:
 def decide_with_gemini_pro(analysis: str, stock_data: dict[str, Any]) -> dict[str, Any]:
     """Gemini Pro로 종목 결정."""
     try:
-        genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-        model = genai.GenerativeModel("gemini-2.5-pro")
+        client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         philosophy = _load_philosophy()
@@ -230,8 +229,11 @@ def decide_with_gemini_pro(analysis: str, stock_data: dict[str, Any]) -> dict[st
 위 분석을 검토하고 최종 판단을 내려라.
 팀 B 투자 철학과 우선순위에 따라 판단하며 반드시 JSON만 출력하라."""
 
-        response = model.generate_content(f"{system}\n\n{user}")
-        raw = response.text.strip().replace("```json", "").replace("```", "").strip()
+        response = client.models.generate_content(
+            model="gemini-2.5-pro",
+            contents=f"{system}\n\n{user}",
+        )
+        raw = (response.text or "").strip().replace("```json", "").replace("```", "").strip()
         result = json.loads(raw)
         logger.info("Gemini Pro 결정 완료 | ticker=%s | action=%s", stock_data.get("ticker"), result.get("action"))
         return result

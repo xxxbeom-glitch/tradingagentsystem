@@ -952,7 +952,7 @@
             <span class="team-tag tag-speed">SPEED</span>
             <span class="team-name">팀 A</span>
           </div>
-          <div class="team-engines">Gemini Flash 2.0 → DeepSeek V3</div>
+          <div class="team-engines">Gemini Flash → DeepSeek R1</div>
         </div>
         <div class="team-pnl">
           <div class="pnl-value" id="team-a-return">—</div>
@@ -1108,6 +1108,7 @@
   const PORTFOLIO_URL = '/portfolio.json';
   const TIMELINE_URL = '/timeline.json';
   const REFRESH_INTERVAL_MS = 10000;
+  const SEED_MONEY = 1000000;
 
   let returnsChart = null;
 
@@ -1124,8 +1125,20 @@
   }
 
   function fmtPctSigned(v) {
-    const n = Number(v) || 0;
+    const n = Number(v);
+    if (!Number.isFinite(n)) return '0.0%';
     return (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
+  }
+
+  /** (현재 평가금액 - 시드) / 시드 * 100. 거래 0회·데이터 없음이면 0.0% */
+  function calcReturnPct(team) {
+    if (!team || typeof team !== 'object') return 0;
+    const total = Number(team.total_value);
+    if (!Number.isFinite(total) || total <= 0) return 0;
+    const trades = Number(team.total_trades) || 0;
+    const hasHoldings = Array.isArray(team.holdings) && team.holdings.length > 0;
+    if (trades === 0 && !hasHoldings) return 0;
+    return Math.round(((total - SEED_MONEY) / SEED_MONEY) * 1000) / 10;
   }
 
   function pnlClass(v) {
@@ -1227,13 +1240,14 @@
 
   function renderTeam(prefix, team) {
     const t = team || {};
-    setPnlEl(document.getElementById(prefix + '-return'), t.return_pct);
+    const returnPct = calcReturnPct(t);
+    setPnlEl(document.getElementById(prefix + '-return'), returnPct);
     const totalEl = document.getElementById(prefix + '-total');
     if (totalEl) totalEl.textContent = fmtWon(t.total_value);
     const cashEl = document.getElementById(prefix + '-cash');
     if (cashEl) cashEl.textContent = fmtWon(t.cash);
     const investedEl = document.getElementById(prefix + '-invested');
-    if (investedEl) investedEl.textContent = '500,000원';
+    if (investedEl) investedEl.textContent = fmtWon(SEED_MONEY);
     const holdingsEl = document.getElementById(prefix + '-holdings');
     if (holdingsEl) holdingsEl.innerHTML = buildHoldingsHtml(t.holdings);
     const logEl = document.getElementById(prefix + '-log');
@@ -1245,7 +1259,7 @@
         ? `마지막 판단 ${latest.time || '—'} · ${latest.action || ''}`
         : '마지막 판단 —';
     }
-    return buildCumulativeSeries(t.ai_log, t.return_pct);
+    return buildCumulativeSeries(t.ai_log, returnPct);
   }
 
   function updateChart(seriesA, seriesB) {
@@ -1339,8 +1353,8 @@
     document.getElementById('lastUpdated').textContent =
       '마지막 업데이트: ' + (data.updated_at || '—');
 
-    setSummaryPnlEl(document.getElementById('summary-a-return'), teamA.return_pct);
-    setSummaryPnlEl(document.getElementById('summary-b-return'), teamB.return_pct);
+    setSummaryPnlEl(document.getElementById('summary-a-return'), calcReturnPct(teamA));
+    setSummaryPnlEl(document.getElementById('summary-b-return'), calcReturnPct(teamB));
 
     const subA = document.getElementById('summary-a-sub');
     if (subA) subA.textContent = `평가 ${fmtWon(teamA.total_value)} · 승률 ${(Number(teamA.win_rate) || 0).toFixed(0)}%`;

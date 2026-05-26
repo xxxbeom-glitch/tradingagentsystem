@@ -13,6 +13,16 @@ import sqlite3
 from datetime import datetime
 from typing import Any
 
+import pandas as pd
+
+# 오늘 하루 매수/매도 시도 기록 · 미체결 대기 주문 (메모리)
+trade_log: list[dict[str, Any]] = []
+pending_orders: list[dict[str, Any]] = []
+
+TRADE_LOG_CSV_COLUMNS = [
+    "일시", "종목코드", "종목명", "팀", "지정가", "시도시현재가", "체결시현재가", "결과", "사유",
+]
+
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(ROOT_DIR, "trading_agent.db")
 LOG_PATH = os.path.join(ROOT_DIR, "logs", "portfolio", "portfolio.log")
@@ -44,6 +54,147 @@ def _conn() -> sqlite3.Connection:
     return conn
 
 
+def _now_str() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _append_buy_trade_log(
+    team: str,
+    ticker: str,
+    name: str,
+    entry_price: int,
+    price_at_attempt: int,
+    result: str,
+    reason: str,
+    fill_price: int | None = None,
+) -> int:
+    """매수 시도 trade_log 기록. 추가된 행 인덱스 반환."""
+    trade_log.append({
+        "일시": _now_str(),
+        "종목코드": ticker,
+        "종목명": name,
+        "팀": team,
+        "지정가": entry_price,
+        "시도시현재가": price_at_attempt,
+        "체결시현재가": fill_price,
+        "결과": result,
+        "사유": reason,
+    })
+    return len(trade_log) - 1
+
+
+def _update_trade_log(log_index: int, **updates: Any) -> None:
+    """trade_log 항목 업데이트 (미체결 → 체결/취소)."""
+    if 0 <= log_index < len(trade_log):
+        trade_log[log_index].update(updates)
+
+
+def get_today_trade_log() -> list[dict[str, Any]]:
+    """오늘 날짜 trade_log만 반환."""
+    today = datetime.now().strftime("%Y-%m-%d")
+    return [r for r in trade_log if str(r.get("일시", "")).startswith(today)]
+
+
+def save_trade_log_csv() -> str:
+    """trade_log를 logs/trades/YYYY-MM-DD.csv로 저장 (utf-8-sig)."""
+    today = datetime.now().strftime("%Y-%m-%d")
+    dir_path = os.path.join(ROOT_DIR, "logs", "trades")
+    os.makedirs(dir_path, exist_ok=True)
+    path = os.path.join(dir_path, f"{today}.csv")
+
+    records = get_today_trade_log()
+    if records:
+        df = pd.DataFrame(records)
+        for col in TRADE_LOG_CSV_COLUMNS:
+            if col not in df.columns:
+                df[col] = None
+        extra_cols = [c for c in df.columns if c not in TRADE_LOG_CSV_COLUMNS]
+        df = df[TRADE_LOG_CSV_COLUMNS + extra_cols]
+    else:
+        df = pd.DataFrame(columns=TRADE_LOG_CSV_COLUMNS)
+
+    df.to_csv(path, index=False, encoding="utf-8-sig")
+    logger.info("거래 로그 CSV 저장 | %s (%d건)", path, len(records))
+    return path
+
+
+def _fetch_market_price(kis_client: Any, ticker: str, fallback: int) -> int:
+    try:
+        data = kis_client.get_current_price(ticker)
+        return int(data.get("price") or fallback)
+    except Exception as e:
+        logger.warning("현재가 조회 실패 | ticker=%s error=%s", ticker, e)
+        return fallback
+
+
+def check_pending_orders(kis_client: Any) -> dict[str, Any]:
+    """미체결 지정가 주문 재확인. 15:20 이후 자동 취소."""
+    now = datetime.now()
+    after_1520 = (now.hour, now.minute) >= (15, 20)
+    filled = 0
+    cancelled = 0
+
+    for order in list(pending_orders):
+        team = order["team"]
+        ticker = order["ticker"]
+        name = order["name"]
+        entry_limit = int(order["entry_price"])
+        log_index = int(order.get("log_index", -1))
+
+        try:
+            if after_1520:
+                cancel_reason = "15:20 만료 — 지정가 미체결 자동 취소"
+                _update_trade_log(
+                    log_index,
+                    결과="취소(15:20만료)",
+                    사유=cancel_reason,
+                    체결시현재가=None,
+                )
+                pending_orders.remove(order)
+                cancelled += 1
+                logger.info("미체결 취소 | team=%s ticker=%s", team, ticker)
+                continue
+
+            market_price = _fetch_market_price(kis_client, ticker, entry_limit)
+            if entry_limit < market_price:
+                continue
+
+            buy(
+                team=team,
+                ticker=ticker,
+                name=name,
+                price=int(order["price"]),
+                quantity=int(order["quantity"]),
+                trade_type=order.get("trade_type", "단타"),
+                target_price=int(order.get("target_price", 0)),
+                stop_loss=int(order.get("stop_loss", 0)),
+                entry_price=entry_limit,
+                kis_client=kis_client,
+                _skip_fill_check=True,
+            )
+            fill_reason = (
+                f"미체결 후 체결 — 지정가 {entry_limit:,}원 >= 현재가 {market_price:,}원"
+            )
+            _update_trade_log(
+                log_index,
+                결과="체결",
+                체결시현재가=market_price,
+                사유=fill_reason,
+            )
+            pending_orders.remove(order)
+            filled += 1
+            logger.info("미체결 체결 | team=%s ticker=%s entry=%d market=%d",
+                        team, ticker, entry_limit, market_price)
+        except Exception as e:
+            logger.error("미체결 처리 실패 | team=%s ticker=%s error=%s", team, ticker, e)
+
+    return {
+        "filled": filled,
+        "cancelled": cancelled,
+        "pending": len(pending_orders),
+    }
+
+
 def buy(
     team: str,
     ticker: str,
@@ -54,8 +205,63 @@ def buy(
     target_price: int = 0,
     stop_loss: int = 0,
     entry_price: int | None = None,
+    kis_client: Any | None = None,
+    _skip_fill_check: bool = False,
 ) -> dict[str, Any]:
     """매수 기록. 잔고 차감 및 수수료 적용."""
+    entry_limit = int(entry_price if entry_price is not None else price)
+
+    if not _skip_fill_check:
+        from data.realtime import KISClient
+
+        client = kis_client or KISClient()
+        market_price = _fetch_market_price(client, ticker, int(price))
+
+        if entry_limit < market_price:
+            reason = (
+                f"지정가 {entry_limit:,}원 < 현재가 {market_price:,}원 — 지정가 미달"
+            )
+            log_index = _append_buy_trade_log(
+                team, ticker, name, entry_limit, market_price,
+                "미체결", reason, fill_price=None,
+            )
+            pending_orders.append({
+                "team": team,
+                "ticker": ticker,
+                "name": name,
+                "entry_price": entry_limit,
+                "price": int(price),
+                "quantity": quantity,
+                "trade_type": trade_type,
+                "target_price": target_price,
+                "stop_loss": stop_loss,
+                "price_at_attempt": market_price,
+                "log_index": log_index,
+                "created_at": _now_str(),
+            })
+            logger.info(
+                "매수 미체결 | team=%s ticker=%s entry=%d market=%d",
+                team, ticker, entry_limit, market_price,
+            )
+            return {
+                "team": team,
+                "ticker": ticker,
+                "name": name,
+                "status": "미체결",
+                "entry_price": entry_limit,
+                "market_price": market_price,
+                "reason": reason,
+                "log_index": log_index,
+            }
+
+        fill_reason = (
+            f"지정가 {entry_limit:,}원 >= 현재가 {market_price:,}원 — 체결 조건 충족"
+        )
+        _append_buy_trade_log(
+            team, ticker, name, entry_limit, market_price,
+            "체결", fill_reason, fill_price=market_price,
+        )
+
     fee = int(price * quantity * BUY_FEE_RATE)
     buy_amount = price * quantity
     total_cost = buy_amount + fee
@@ -115,6 +321,7 @@ def buy(
         "fee": fee,
         "total_cost": total_cost,
         "bought_at": now,
+        "status": "체결",
     }
 
 
@@ -123,18 +330,21 @@ def sell(
     ticker: str,
     price: int,
     quantity: int,
+    name: str = "",
+    sell_reason: str = "목표가도달",
 ) -> dict[str, Any]:
     """매도 기록. 손익 계산 및 잔고 반영."""
     fee = int(price * quantity * SELL_FEE_RATE)
     tax = int(price * quantity * TAX_RATE)
     proceeds = price * quantity - fee - tax
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    buy_price = 0
 
     with _conn() as conn:
         # 보유 종목 확인 (최근 매수 기준)
         row = conn.execute(
             """
-            SELECT id, buy_price, buy_quantity, buy_fee
+            SELECT id, name, buy_price, buy_quantity, buy_fee
             FROM portfolio
             WHERE team = ? AND ticker = ? AND status = '보유중'
             ORDER BY bought_at DESC LIMIT 1
@@ -144,6 +354,7 @@ def sell(
         if not row:
             raise RuntimeError(f"보유 종목 없음: team={team} ticker={ticker}")
 
+        stock_name = name or row["name"] or ticker
         buy_price = row["buy_price"]
         buy_fee = row["buy_fee"]
         pnl = proceeds - (buy_price * quantity + buy_fee)
@@ -164,6 +375,22 @@ def sell(
             "UPDATE balance SET cash = cash + ? WHERE team = ?",
             (proceeds, team),
         )
+
+    return_pct = (
+        round((price - buy_price) / buy_price * 100, 2) if buy_price > 0 else 0.0
+    )
+    trade_log.append({
+        "일시": _now_str(),
+        "종목코드": ticker,
+        "종목명": stock_name,
+        "팀": team,
+        "구분": "매도",
+        "매도사유": sell_reason,
+        "매수가": buy_price,
+        "매도가": price,
+        "수익률": return_pct,
+        "결과": "체결",
+    })
 
     logger.info("매도 | team=%s ticker=%s price=%d qty=%d fee=%d tax=%d pnl=%d",
                 team, ticker, price, quantity, fee, tax, pnl)

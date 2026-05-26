@@ -6,7 +6,7 @@ yfinance
 dart-fss
 
 # AI 엔진
-google-generativeai
+google-genai
 openai
 
 # 환경변수
