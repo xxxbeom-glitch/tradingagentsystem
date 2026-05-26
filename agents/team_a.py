@@ -92,6 +92,15 @@ SYSTEM_PROMPT_TEMPLATE = """너는 한국 주식 단타/스윙 전문 투자 에
 - quantity가 0이면 action을 관망으로 변경
 - 분할 매수: 한 종목에 가용 현금의 50% 초과 금지
 
+[목표가/손절가 계산 규칙 — 반드시 준수]
+- type이 "단타"인 경우:
+  target_price = int(entry_price * 1.04)  # +4%
+  stop_loss = int(entry_price * 0.98)     # -2%
+- type이 "스윙"인 경우:
+  target_price = int(entry_price * 1.12)  # +12%
+  stop_loss = int(entry_price * 0.95)     # -5%
+- 반드시 숫자로 설정할 것 (0이나 null 금지)
+
 [지정가 진입 규칙]
 - entry_price는 현재가보다 1~3% 낮게 설정
 - 당일 미체결 시 자동 취소 (다음날 연장 금지)

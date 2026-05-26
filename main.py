@@ -292,7 +292,7 @@ def run_cycle() -> None:
         for candidate in candidates:
             name = candidate["name"]
             ticker = candidate["ticker"]
-            add_timeline_event("트리거", f"{name}({ticker}) {' + '.join(candidate['triggers'])}")
+            add_timeline_event("트리거", f"{name}({ticker}) {' + '.join(candidate['triggers'])} · pykrx")
     except Exception as e:
         logger.error("종목 스캔 실패: %s", e)
         candidates = []
@@ -335,7 +335,7 @@ def run_cycle() -> None:
                             result = sell(team, ticker, current_price, qty)
                             logger.info("매도 실행 | team=%s ticker=%s pnl=%d",
                                         team, ticker, result.get("pnl", 0))
-                            add_timeline_event("매도", f"팀{team} — {ticker} 매도 손익: {result.get('pnl', 0):,}원")
+                            add_timeline_event("매도", f"팀{team} — {ticker} 매도 손익: {result.get('pnl', 0):,}원 · KIS")
                     except Exception as e:
                         logger.error("매도 체크 실패 | team=%s ticker=%s error=%s",
                                      team, ticker, e)
@@ -389,6 +389,10 @@ def run_cycle() -> None:
             disclosure_titles = [d.get("title", "") for d in disclosures[:5]]
         except Exception:
             disclosure_titles = []
+
+        # 공시 타임라인 기록
+        if disclosure_titles:
+            add_timeline_event("공시", f"{name}({ticker}) {disclosure_titles[0]} · DART")
 
         # 네이버 뉴스
         try:
@@ -455,7 +459,7 @@ def run_cycle() -> None:
                                 entry)
                             logger.info("팀 A 매수 기록 완료 | ticker=%s qty=%d entry=%d",
                                         ticker, qty, entry)
-                            add_timeline_event("매수", f"팀A — {name} {entry:,}원 × {qty}주 (entry: {entry:,}원)")
+                            add_timeline_event("매수", f"팀A — {name} {entry:,}원 × {qty}주 · KIS")
                     else:
                         buy("A", ticker, name, entry, qty,
                             result_a.get("type", "단타"),
@@ -464,7 +468,7 @@ def run_cycle() -> None:
                             entry)
                         logger.info("팀 A 매수 기록 완료 | ticker=%s qty=%d entry=%d",
                                     ticker, qty, entry)
-                        add_timeline_event("매수", f"팀A — {name} {entry:,}원 × {qty}주 (entry: {entry:,}원)")
+                        add_timeline_event("매수", f"팀A — {name} {entry:,}원 × {qty}주 · KIS")
             except Exception as e:
                 logger.error("팀 A 실패 | ticker=%s error=%s", ticker, e)
 
@@ -503,7 +507,7 @@ def run_cycle() -> None:
                                 entry)
                             logger.info("팀 B 매수 기록 완료 | ticker=%s qty=%d entry=%d",
                                         ticker, qty, entry)
-                            add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인)")
+                            add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인) · KIS")
                     else:
                         buy("B", ticker, name, entry, qty,
                             result_b.get("type", "단타"),
@@ -512,7 +516,7 @@ def run_cycle() -> None:
                             entry)
                         logger.info("팀 B 매수 기록 완료 | ticker=%s qty=%d entry=%d",
                                     ticker, qty, entry)
-                        add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인)")
+                        add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인) · KIS")
             except Exception as e:
                 logger.error("팀 B 실패 | ticker=%s error=%s", ticker, e)
 

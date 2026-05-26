@@ -37,6 +37,7 @@
     color: var(--text);
     min-height: 100vh;
     padding: 0;
+    font-size: 15px;
   }
 
   .mono { font-family: 'Space Mono', monospace; }
@@ -100,14 +101,14 @@
 
   /* 메인 레이아웃 */
   main {
-    padding: 28px 32px;
+    padding: 32px 36px;
     max-width: 1400px;
     margin: 0 auto;
   }
 
   /* 섹션 타이틀 */
   .section-label {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.12em;
     color: var(--text3);
@@ -134,7 +135,7 @@
   .team-card:hover { border-color: var(--border2); }
 
   .team-header {
-    padding: 18px 20px 14px;
+    padding: 20px 22px 16px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: flex-start;
@@ -199,7 +200,7 @@
   }
   .meta-item {
     flex: 1;
-    padding: 12px 20px;
+    padding: 14px 22px;
     border-right: 1px solid var(--border);
   }
   .meta-item:last-child { border-right: none; }
@@ -218,7 +219,7 @@
 
   /* 보유 종목 */
   .holdings {
-    padding: 14px 20px;
+    padding: 16px 22px;
     border-bottom: 1px solid var(--border);
   }
   .holdings-label {
@@ -288,7 +289,7 @@
 
   /* 에이전트 상태 */
   .agent-status {
-    padding: 12px 20px;
+    padding: 14px 22px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -323,7 +324,7 @@
 
   /* AI 판단 로그 */
   .log-section {
-    padding: 14px 20px;
+    padding: 16px 22px;
   }
   .log-label {
     font-size: 10px;
@@ -447,7 +448,7 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 16px 18px;
+    padding: 18px 20px;
   }
   .summary-label {
     font-size: 10px;
@@ -461,9 +462,49 @@
     font-weight: 700;
   }
   .summary-sub {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text3);
     margin-top: 2px;
+  }
+
+  /* 실시간 감시 로그 */
+  .timeline-panel {
+    background: #0d1015;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 28px;
+  }
+  .timeline-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text2);
+    margin-bottom: 12px;
+  }
+  .timeline-body {
+    max-height: 260px;
+    overflow-y: auto;
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    line-height: 1.75;
+  }
+  .timeline-line { color: var(--text); word-break: break-word; }
+  .timeline-time { color: var(--text3); }
+  .timeline-badge { font-size: 11px; font-weight: 700; }
+  .timeline-line.tl-trigger .timeline-badge { color: var(--blue); }
+  .timeline-line.tl-buy .timeline-badge { color: var(--green); }
+  .timeline-line.tl-sell .timeline-badge { color: var(--red); }
+  .timeline-line.tl-disclosure .timeline-badge { color: var(--amber); }
+  .timeline-empty {
+    text-align: center;
+    color: var(--text3);
+    padding: 12px 0;
+    font-family: 'Space Mono', monospace;
   }
 
   /* 반응형 */
@@ -669,8 +710,18 @@
 
 </main>
 
+<main style="padding-top:0;">
+  <div class="timeline-panel" aria-label="실시간 감시 로그">
+    <div class="timeline-title">실시간 감시 로그</div>
+    <div class="timeline-body" id="timelineBody">
+      <div class="timeline-empty">감시 데이터 대기중...</div>
+    </div>
+  </div>
+</main>
+
 <script>
   const PORTFOLIO_URL = 'https://raw.githubusercontent.com/xxxbeom-glitch/tradingagentsystem/main/portfolio.json';
+  const TIMELINE_URL = 'https://raw.githubusercontent.com/xxxbeom-glitch/tradingagentsystem/main/timeline.json';
   const REFRESH_INTERVAL_MS = 30000;
 
   let returnsChart = null;
@@ -922,6 +973,55 @@
     updateChart(seriesA, seriesB);
   }
 
+  const TIMELINE_TYPE_CLASS = {
+    '트리거': 'tl-trigger',
+    '매수': 'tl-buy',
+    '매도': 'tl-sell',
+    '공시': 'tl-disclosure',
+  };
+
+  function normalizeTimelineItem(item) {
+    if (typeof item === 'string') {
+      const parts = item.split('|').map(s => s.trim());
+      return { time: parts[0] || '', type: parts[1] || '', text: parts.slice(2).join('|').trim() };
+    }
+    return {
+      time: item.time || '',
+      type: item.type || '',
+      text: item.text || item.content || item.message || '',
+    };
+  }
+
+  function buildTimelineLine(item) {
+    const type = item.type || '트리거';
+    const cls = TIMELINE_TYPE_CLASS[type] || 'tl-trigger';
+    const time = item.time || '—';
+    const text = item.text || '';
+    return `<div class="timeline-line ${cls}"><span class="timeline-time">[${time}]</span> <span class="timeline-badge">[${type}]</span> ${text}</div>`;
+  }
+
+  function renderTimeline(data) {
+    const body = document.getElementById('timelineBody');
+    if (!body) return;
+    const timeline = Array.isArray(data.timeline) ? data.timeline : [];
+    if (timeline.length === 0) {
+      body.innerHTML = '<div class="timeline-empty">감시 데이터 대기중...</div>';
+      return;
+    }
+    body.innerHTML = timeline.map(normalizeTimelineItem).map(buildTimelineLine).join('');
+  }
+
+  async function loadTimeline() {
+    try {
+      const res = await fetch(TIMELINE_URL + '?t=' + Date.now());
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      renderTimeline(data);
+    } catch (e) {
+      renderTimeline({ timeline: [] });
+    }
+  }
+
   async function loadPortfolio() {
     try {
       const res = await fetch(PORTFOLIO_URL + '?t=' + Date.now());
@@ -936,6 +1036,8 @@
 
   loadPortfolio();
   setInterval(loadPortfolio, REFRESH_INTERVAL_MS);
+  loadTimeline();
+  setInterval(loadTimeline, REFRESH_INTERVAL_MS);
 </script>
 </body>
 </html>
