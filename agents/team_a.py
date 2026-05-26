@@ -71,8 +71,8 @@ SYSTEM_PROMPT_TEMPLATE = """너는 한국 주식 단타/스윙 전문 투자 에
   "type": "단타/스윙",
   "reason": "비전공자도 이해할 수 있는 한 줄 근거",
   "confidence": "HIGH/MEDIUM/LOW",
-  "quantity": 수량,
-  "entry_price": 희망진입가(현재가 이하로 AI 자율 설정, 관망 시 null),
+  "quantity": 수량 (아래 규칙 반드시 준수),
+  "entry_price": 희망 진입가 (현재가보다 낮게 설정, 관망 시 null),
   "target_price": 목표가,
   "stop_loss": 손절가,
   "scores": {{
@@ -82,6 +82,20 @@ SYSTEM_PROMPT_TEMPLATE = """너는 한국 주식 단타/스윙 전문 투자 에
     "뉴스": 0~10
   }}
 }}
+
+[수량 계산 규칙 — 반드시 준수]
+- 가용 현금(available_cash) 범위 내에서만 매수
+- confidence=HIGH: 가용 현금의 40~50% 사용
+- confidence=MEDIUM: 가용 현금의 20~30% 사용
+- confidence=LOW: 가용 현금의 10~15% 사용
+- quantity = int(가용현금 * 비율 / entry_price)
+- quantity가 0이면 action을 관망으로 변경
+- 분할 매수: 한 종목에 가용 현금의 50% 초과 금지
+
+[지정가 진입 규칙]
+- entry_price는 현재가보다 1~3% 낮게 설정
+- 당일 미체결 시 자동 취소 (다음날 연장 금지)
+- 매수 확신도가 HIGH일 때만 현재가 근접 진입 허용
 """
 
 USER_PROMPT_TEMPLATE = """현재 시장 데이터:

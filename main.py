@@ -419,16 +419,39 @@ def run_cycle() -> None:
                             result_a.get("entry_price"))
 
                 if result_a.get("action") == "매수":
+                    # 수량/가격 검증
                     entry = result_a.get("entry_price") or candidate["current_price"]
-                    qty = result_a.get("quantity", 1)
-                    buy("A", ticker, name, entry, qty,
-                        result_a.get("type", "단타"),
-                        result_a.get("target_price", 0),
-                        result_a.get("stop_loss", 0),
-                        entry)
-                    logger.info("팀 A 매수 기록 완료 | ticker=%s qty=%d entry=%d",
-                                ticker, qty, entry)
-                    add_timeline_event("매수", f"팀A — {name} {entry:,}원 × {qty}주 (entry: {entry:,}원)")
+                    qty = result_a.get("quantity", 0)
+                    balance = get_balance("A")
+                    available = balance.get("cash", 0)
+
+                    # quantity가 0이거나 가용 현금 초과 시 스킵
+                    if qty <= 0:
+                        logger.info("팀 A 매수 스킵 | ticker=%s | 수량 0", ticker)
+                    elif entry * qty > available:
+                        # 가용 현금으로 살 수 있는 최대 수량으로 조정
+                        qty = int(available * 0.4 / entry)  # 최대 40% 사용
+                        if qty <= 0:
+                            logger.info("팀 A 매수 스킵 | ticker=%s | 잔고 부족", ticker)
+                        else:
+                            logger.info("팀 A 수량 조정 | ticker=%s | qty=%d entry=%d", ticker, qty, entry)
+                            buy("A", ticker, name, entry, qty,
+                                result_a.get("type", "단타"),
+                                result_a.get("target_price", 0),
+                                result_a.get("stop_loss", 0),
+                                entry)
+                            logger.info("팀 A 매수 기록 완료 | ticker=%s qty=%d entry=%d",
+                                        ticker, qty, entry)
+                            add_timeline_event("매수", f"팀A — {name} {entry:,}원 × {qty}주 (entry: {entry:,}원)")
+                    else:
+                        buy("A", ticker, name, entry, qty,
+                            result_a.get("type", "단타"),
+                            result_a.get("target_price", 0),
+                            result_a.get("stop_loss", 0),
+                            entry)
+                        logger.info("팀 A 매수 기록 완료 | ticker=%s qty=%d entry=%d",
+                                    ticker, qty, entry)
+                        add_timeline_event("매수", f"팀A — {name} {entry:,}원 × {qty}주 (entry: {entry:,}원)")
             except Exception as e:
                 logger.error("팀 A 실패 | ticker=%s error=%s", ticker, e)
 
@@ -444,16 +467,39 @@ def run_cycle() -> None:
                             result_b.get("verification"))
 
                 if result_b.get("action") == "매수":
+                    # 수량/가격 검증
                     entry = result_b.get("entry_price") or candidate["current_price"]
-                    qty = result_b.get("quantity", 1)
-                    buy("B", ticker, name, entry, qty,
-                        result_b.get("type", "단타"),
-                        result_b.get("target_price", 0),
-                        result_b.get("stop_loss", 0),
-                        entry)
-                    logger.info("팀 B 매수 기록 완료 | ticker=%s qty=%d entry=%d",
-                                ticker, qty, entry)
-                    add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인)")
+                    qty = result_b.get("quantity", 0)
+                    balance = get_balance("B")
+                    available = balance.get("cash", 0)
+
+                    # quantity가 0이거나 가용 현금 초과 시 스킵
+                    if qty <= 0:
+                        logger.info("팀 B 매수 스킵 | ticker=%s | 수량 0", ticker)
+                    elif entry * qty > available:
+                        # 가용 현금으로 살 수 있는 최대 수량으로 조정
+                        qty = int(available * 0.4 / entry)  # 최대 40% 사용
+                        if qty <= 0:
+                            logger.info("팀 B 매수 스킵 | ticker=%s | 잔고 부족", ticker)
+                        else:
+                            logger.info("팀 B 수량 조정 | ticker=%s | qty=%d entry=%d", ticker, qty, entry)
+                            buy("B", ticker, name, entry, qty,
+                                result_b.get("type", "단타"),
+                                result_b.get("target_price", 0),
+                                result_b.get("stop_loss", 0),
+                                entry)
+                            logger.info("팀 B 매수 기록 완료 | ticker=%s qty=%d entry=%d",
+                                        ticker, qty, entry)
+                            add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인)")
+                    else:
+                        buy("B", ticker, name, entry, qty,
+                            result_b.get("type", "단타"),
+                            result_b.get("target_price", 0),
+                            result_b.get("stop_loss", 0),
+                            entry)
+                        logger.info("팀 B 매수 기록 완료 | ticker=%s qty=%d entry=%d",
+                                    ticker, qty, entry)
+                        add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인)")
             except Exception as e:
                 logger.error("팀 B 실패 | ticker=%s error=%s", ticker, e)
 

@@ -139,6 +139,17 @@ def scan_candidates(
             if volume == 0:
                 continue
 
+            # 우선주 제외 (종목명에 '우', '우B', '1우', '2우' 포함 시 제외)
+            name = ""
+            try:
+                from pykrx import stock as krx_stock
+                name = krx_stock.get_market_ticker_name(ticker) or ""
+            except Exception:
+                pass
+
+            if any(x in name for x in ["우B", "우C", "1우", "2우", "3우"]) or (name.endswith("우") and not name.endswith("대우")):
+                continue
+
             trigger_results = []
             trigger_names = []
 
