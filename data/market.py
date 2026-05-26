@@ -1,7 +1,7 @@
 """시장 감시 모듈.
 
 pykrx로 전체 종목 스캔 → 트리거 조건 체크 → 후보 종목 추출.
-신규 진입 조건: 1주당 59,000원 이하 종목만.
+신규 진입 조건: 1주당 100,000원 이하 종목만.
 트리거 2개 이상 충족 종목만 AI 호출 대상.
 """
 
@@ -28,7 +28,7 @@ from triggers.conditions import (
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG_PATH = os.path.join(ROOT_DIR, "logs", "market", "market.log")
 
-MAX_ENTRY_PRICE = 59_000  # 신규 진입 가격 상한
+MAX_ENTRY_PRICE = 100_000  # 신규 진입 가격 상한
 
 
 def _setup_logger() -> logging.Logger:
@@ -132,8 +132,8 @@ def scan_candidates(
                 continue  # 갭 상승 종목 제외
 
             # 신규 진입 가격 상한 필터
-            # if current_price <= 0 or current_price > MAX_ENTRY_PRICE:
-            #     continue
+            if current_price <= 0 or current_price > MAX_ENTRY_PRICE:
+                continue
 
             # 거래량 없는 종목 제외
             if volume == 0:
