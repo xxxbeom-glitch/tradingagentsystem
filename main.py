@@ -244,9 +244,28 @@ def run_cycle() -> None:
     # ── 2. 전체 종목 스캔 ──
     try:
         from data.market import get_market_ohlcv, scan_candidates
+        from datetime import datetime, timedelta
+
         logger.info("전체 종목 스캔 시작")
-        ohlcv = get_market_ohlcv()
-        candidates = scan_candidates(ohlcv)
+
+        # 오늘 데이터
+        today = datetime.now().strftime("%Y%m%d")
+        ohlcv = get_market_ohlcv(today)
+
+        # 가장 최근 영업일 (전일) 데이터
+        def get_prev_trading_day() -> str:
+            date = datetime.now() - timedelta(days=1)
+            while date.weekday() >= 5:  # 토(5), 일(6) 건너뜀
+                date -= timedelta(days=1)
+            return date.strftime("%Y%m%d")
+
+        prev_date = get_prev_trading_day()
+        prev_ohlcv = get_market_ohlcv(prev_date)
+
+        candidates = scan_candidates(
+            ohlcv=ohlcv,
+            prev_ohlcv=prev_ohlcv,
+        )
         logger.info("후보 종목 %d개 발굴", len(candidates))
         for candidate in candidates:
             name = candidate["name"]
