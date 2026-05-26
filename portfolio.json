@@ -1,0 +1,25 @@
+{
+  "updated_at": "",
+  "team_a": {
+    "cash": 500000,
+    "invested": 0,
+    "total_value": 500000,
+    "return_pct": 0.0,
+    "realized_pnl": 0,
+    "total_trades": 0,
+    "win_rate": 0.0,
+    "holdings": [],
+    "ai_log": []
+  },
+  "team_b": {
+    "cash": 500000,
+    "invested": 0,
+    "total_value": 500000,
+    "return_pct": 0.0,
+    "realized_pnl": 0,
+    "total_trades": 0,
+    "win_rate": 0.0,
+    "holdings": [],
+    "ai_log": []
+  }
+}
