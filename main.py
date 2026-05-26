@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sqlite3
 from dotenv import load_dotenv
 load_dotenv()
 import sys
@@ -25,6 +26,7 @@ import requests
 from data.dart import get_disclosures_by_ticker
 from data.market import get_market_ohlcv, scan_candidates
 from data.realtime import KISClient
+from init_db import DB_PATH
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_PATH = os.path.join(ROOT_DIR, "logs", "system", "main.log")
@@ -90,12 +92,32 @@ def save_portfolio_snapshot(
 
             # 보유 종목 정리
             holding_list = []
+            from data.realtime import KISClient
+            client = KISClient()
+
             for h in holdings:
+                ticker = h.get("ticker", "")
+                buy_price = h.get("buy_price", 0)
+                quantity = h.get("buy_quantity", 0)
+
+                # 현재가 조회
+                try:
+                    price_data = client.get_current_price(ticker)
+                    current_price = price_data.get("price", buy_price)
+                except Exception:
+                    current_price = buy_price
+
+                pnl_amount = (current_price - buy_price) * quantity
+                pnl_rate = round((current_price - buy_price) / buy_price * 100, 2) if buy_price > 0 else 0.0
+
                 holding_list.append({
-                    "ticker": h.get("ticker", ""),
+                    "ticker": ticker,
                     "name": h.get("name", ""),
-                    "buy_price": h.get("buy_price", 0),
-                    "quantity": h.get("buy_quantity", 0),
+                    "buy_price": buy_price,
+                    "current_price": current_price,
+                    "quantity": quantity,
+                    "pnl_amount": pnl_amount,
+                    "pnl_rate": pnl_rate,
                     "trade_type": h.get("trade_type", "단타"),
                     "target_price": h.get("target_price", 0),
                     "stop_loss": h.get("stop_loss", 0),
@@ -152,20 +174,7 @@ def save_portfolio_snapshot(
         with open(PORTFOLIO_PATH, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-        logger.info("portfolio.json 저장 완료")
-
-        # portfolio.json 자동 git push
-        try:
-            import subprocess
-            subprocess.run(["git", "add", "portfolio.json", "timeline.json"],
-                           cwd=ROOT_DIR, capture_output=True)
-            subprocess.run(["git", "commit", "-m", "chore: 포트폴리오 업데이트"],
-                           cwd=ROOT_DIR, capture_output=True)
-            subprocess.run(["git", "push"],
-                           cwd=ROOT_DIR, capture_output=True)
-            logger.info("portfolio.json GitHub push 완료")
-        except Exception as e:
-            logger.error("GitHub push 실패: %s", e)
+        logger.info("portfolio.json 로컬 저장 완료")
     except Exception as e:
         logger.error("portfolio.json 저장 실패: %s", e)
 
@@ -355,7 +364,7 @@ def run_cycle() -> None:
     try:
         from agents.team_a import run as run_team_a
         from agents.team_b import run as run_team_b
-        from tracker.portfolio import buy, get_balance
+        from tracker.portfolio import buy, get_balance, get_portfolio
 
     except Exception as e:
         logger.error("모듈 로드 실패: %s", e)
@@ -428,47 +437,108 @@ def run_cycle() -> None:
         if risk_a["status"] not in ["운용종료", "진입중단"]:
             try:
                 bal_a = get_balance("A")
-                stock_data_a = {**stock_data, "available_cash": bal_a["cash"]}
-                result_a = run_team_a(stock_data_a)
-                logger.info("팀 A 판단 | ticker=%s action=%s confidence=%s entry=%s",
-                            ticker, result_a.get("action"),
-                            result_a.get("confidence"),
-                            result_a.get("entry_price"))
+                portfolio_a = get_portfolio("A")
 
-                if result_a.get("action") == "매수":
-                    # 수량/가격 검증
-                    entry = result_a.get("entry_price") or candidate["current_price"]
-                    qty = result_a.get("quantity", 0)
-                    balance = get_balance("A")
-                    available = balance.get("cash", 0)
+                if bal_a["cash"] <= 150000:
+                    logger.info("팀 A 매수 스킵 | 최소 현금 미달 | 현금=%d", bal_a["cash"])
+                elif len(portfolio_a) >= 3:
+                    logger.info("팀 A 매수 스킵 | 최대 종목 수 초과 | 보유=%d", len(portfolio_a))
+                else:
+                    stock_data_a = {**stock_data, "available_cash": bal_a["cash"]}
+                    result_a = run_team_a(stock_data_a)
+                    logger.info("팀 A 판단 | ticker=%s action=%s confidence=%s entry=%s",
+                                ticker, result_a.get("action"),
+                                result_a.get("confidence"),
+                                result_a.get("entry_price"))
 
-                    # quantity가 0이거나 가용 현금 초과 시 스킵
-                    if qty <= 0:
-                        logger.info("팀 A 매수 스킵 | ticker=%s | 수량 0", ticker)
-                    elif entry * qty > available:
-                        # 가용 현금으로 살 수 있는 최대 수량으로 조정
-                        qty = int(available * 0.4 / entry)  # 최대 40% 사용
+                    if result_a.get("action") == "매수":
+                        # 수량/가격 검증
+                        entry = result_a.get("entry_price") or candidate["current_price"]
+                        qty = result_a.get("quantity", 0)
+                        balance = get_balance("A")
+                        available = balance.get("cash", 0)
+
+                        # quantity가 0이거나 가용 현금 초과 시 스킵
                         if qty <= 0:
-                            logger.info("팀 A 매수 스킵 | ticker=%s | 잔고 부족", ticker)
+                            logger.info("팀 A 매수 스킵 | ticker=%s | 수량 0", ticker)
+                        elif entry * qty > available:
+                            # 가용 현금으로 살 수 있는 최대 수량으로 조정
+                            qty = int(available * 0.4 / entry)  # 최대 40% 사용
+                            if qty <= 0:
+                                logger.info("팀 A 매수 스킵 | ticker=%s | 잔고 부족", ticker)
+                            else:
+                                logger.info("팀 A 수량 조정 | ticker=%s | qty=%d entry=%d", ticker, qty, entry)
+                                buy("A", ticker, name, entry, qty,
+                                    result_a.get("type", "단타"),
+                                    result_a.get("target_price", 0),
+                                    result_a.get("stop_loss", 0),
+                                    entry)
+                                order_type = "지정가" if entry < current_price * 0.99 else "시장가"
+                                logger.info("팀 A 매수 기록 완료 | ticker=%s qty=%d entry=%d",
+                                            ticker, qty, entry)
+                                add_timeline_event("매수", f"팀A — {name} {entry:,}원 × {qty}주 [{order_type}] · KIS")
+                                try:
+                                    with sqlite3.connect(DB_PATH) as conn:
+                                        conn.execute("""
+                                            INSERT INTO ai_decision_log
+                                                (decided_at, team, model, stage, action, ticker, name,
+                                                 trade_type, reason, confidence, quantity, target_price,
+                                                 stop_loss, raw_response)
+                                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                        """, (
+                                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                            "A",
+                                            "Gemini Flash + DeepSeek R1",
+                                            "최종결정",
+                                            "매수",
+                                            ticker,
+                                            name,
+                                            result_a.get("type", "단타"),
+                                            result_a.get("reason", ""),
+                                            result_a.get("confidence", ""),
+                                            qty,
+                                            result_a.get("target_price", 0),
+                                            result_a.get("stop_loss", 0),
+                                            f"order_type={order_type} entry={entry}",
+                                        ))
+                                except Exception as e:
+                                    logger.error("ai_decision_log 기록 실패: %s", e)
                         else:
-                            logger.info("팀 A 수량 조정 | ticker=%s | qty=%d entry=%d", ticker, qty, entry)
                             buy("A", ticker, name, entry, qty,
                                 result_a.get("type", "단타"),
                                 result_a.get("target_price", 0),
                                 result_a.get("stop_loss", 0),
                                 entry)
+                            order_type = "지정가" if entry < current_price * 0.99 else "시장가"
                             logger.info("팀 A 매수 기록 완료 | ticker=%s qty=%d entry=%d",
                                         ticker, qty, entry)
-                            add_timeline_event("매수", f"팀A — {name} {entry:,}원 × {qty}주 · KIS")
-                    else:
-                        buy("A", ticker, name, entry, qty,
-                            result_a.get("type", "단타"),
-                            result_a.get("target_price", 0),
-                            result_a.get("stop_loss", 0),
-                            entry)
-                        logger.info("팀 A 매수 기록 완료 | ticker=%s qty=%d entry=%d",
-                                    ticker, qty, entry)
-                        add_timeline_event("매수", f"팀A — {name} {entry:,}원 × {qty}주 · KIS")
+                            add_timeline_event("매수", f"팀A — {name} {entry:,}원 × {qty}주 [{order_type}] · KIS")
+                            try:
+                                with sqlite3.connect(DB_PATH) as conn:
+                                    conn.execute("""
+                                        INSERT INTO ai_decision_log
+                                            (decided_at, team, model, stage, action, ticker, name,
+                                             trade_type, reason, confidence, quantity, target_price,
+                                             stop_loss, raw_response)
+                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    """, (
+                                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        "A",
+                                        "Gemini Flash + DeepSeek R1",
+                                        "최종결정",
+                                        "매수",
+                                        ticker,
+                                        name,
+                                        result_a.get("type", "단타"),
+                                        result_a.get("reason", ""),
+                                        result_a.get("confidence", ""),
+                                        qty,
+                                        result_a.get("target_price", 0),
+                                        result_a.get("stop_loss", 0),
+                                        f"order_type={order_type} entry={entry}",
+                                    ))
+                            except Exception as e:
+                                logger.error("ai_decision_log 기록 실패: %s", e)
             except Exception as e:
                 logger.error("팀 A 실패 | ticker=%s error=%s", ticker, e)
 
@@ -476,47 +546,108 @@ def run_cycle() -> None:
         if risk_b["status"] not in ["운용종료", "진입중단"]:
             try:
                 bal_b = get_balance("B")
-                stock_data_b = {**stock_data, "available_cash": bal_b["cash"]}
-                result_b = run_team_b(stock_data_b)
-                logger.info("팀 B 판단 | ticker=%s action=%s confidence=%s verification=%s",
-                            ticker, result_b.get("action"),
-                            result_b.get("confidence"),
-                            result_b.get("verification"))
+                portfolio_b = get_portfolio("B")
 
-                if result_b.get("action") == "매수":
-                    # 수량/가격 검증
-                    entry = result_b.get("entry_price") or candidate["current_price"]
-                    qty = result_b.get("quantity", 0)
-                    balance = get_balance("B")
-                    available = balance.get("cash", 0)
+                if bal_b["cash"] <= 150000:
+                    logger.info("팀 B 매수 스킵 | 최소 현금 미달 | 현금=%d", bal_b["cash"])
+                elif len(portfolio_b) >= 4:
+                    logger.info("팀 B 매수 스킵 | 최대 종목 수 초과 | 보유=%d", len(portfolio_b))
+                else:
+                    stock_data_b = {**stock_data, "available_cash": bal_b["cash"]}
+                    result_b = run_team_b(stock_data_b)
+                    logger.info("팀 B 판단 | ticker=%s action=%s confidence=%s verification=%s",
+                                ticker, result_b.get("action"),
+                                result_b.get("confidence"),
+                                result_b.get("verification"))
 
-                    # quantity가 0이거나 가용 현금 초과 시 스킵
-                    if qty <= 0:
-                        logger.info("팀 B 매수 스킵 | ticker=%s | 수량 0", ticker)
-                    elif entry * qty > available:
-                        # 가용 현금으로 살 수 있는 최대 수량으로 조정
-                        qty = int(available * 0.4 / entry)  # 최대 40% 사용
+                    if result_b.get("action") == "매수":
+                        # 수량/가격 검증
+                        entry = result_b.get("entry_price") or candidate["current_price"]
+                        qty = result_b.get("quantity", 0)
+                        balance = get_balance("B")
+                        available = balance.get("cash", 0)
+
+                        # quantity가 0이거나 가용 현금 초과 시 스킵
                         if qty <= 0:
-                            logger.info("팀 B 매수 스킵 | ticker=%s | 잔고 부족", ticker)
+                            logger.info("팀 B 매수 스킵 | ticker=%s | 수량 0", ticker)
+                        elif entry * qty > available:
+                            # 가용 현금으로 살 수 있는 최대 수량으로 조정
+                            qty = int(available * 0.4 / entry)  # 최대 40% 사용
+                            if qty <= 0:
+                                logger.info("팀 B 매수 스킵 | ticker=%s | 잔고 부족", ticker)
+                            else:
+                                logger.info("팀 B 수량 조정 | ticker=%s | qty=%d entry=%d", ticker, qty, entry)
+                                buy("B", ticker, name, entry, qty,
+                                    result_b.get("type", "단타"),
+                                    result_b.get("target_price", 0),
+                                    result_b.get("stop_loss", 0),
+                                    entry)
+                                order_type = "지정가" if entry < current_price * 0.99 else "시장가"
+                                logger.info("팀 B 매수 기록 완료 | ticker=%s qty=%d entry=%d",
+                                            ticker, qty, entry)
+                                add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인) [{order_type}] · KIS")
+                                try:
+                                    with sqlite3.connect(DB_PATH) as conn:
+                                        conn.execute("""
+                                            INSERT INTO ai_decision_log
+                                                (decided_at, team, model, stage, action, ticker, name,
+                                                 trade_type, reason, confidence, quantity, target_price,
+                                                 stop_loss, raw_response)
+                                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                        """, (
+                                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                            "B",
+                                            "DeepSeek V3 + Gemini Pro + R1",
+                                            "최종결정",
+                                            "매수",
+                                            ticker,
+                                            name,
+                                            result_b.get("type", "단타"),
+                                            result_b.get("reason", ""),
+                                            result_b.get("confidence", ""),
+                                            qty,
+                                            result_b.get("target_price", 0),
+                                            result_b.get("stop_loss", 0),
+                                            f"order_type={order_type} entry={entry}",
+                                        ))
+                                except Exception as e:
+                                    logger.error("ai_decision_log 기록 실패: %s", e)
                         else:
-                            logger.info("팀 B 수량 조정 | ticker=%s | qty=%d entry=%d", ticker, qty, entry)
                             buy("B", ticker, name, entry, qty,
                                 result_b.get("type", "단타"),
                                 result_b.get("target_price", 0),
                                 result_b.get("stop_loss", 0),
                                 entry)
+                            order_type = "지정가" if entry < current_price * 0.99 else "시장가"
                             logger.info("팀 B 매수 기록 완료 | ticker=%s qty=%d entry=%d",
                                         ticker, qty, entry)
-                            add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인) · KIS")
-                    else:
-                        buy("B", ticker, name, entry, qty,
-                            result_b.get("type", "단타"),
-                            result_b.get("target_price", 0),
-                            result_b.get("stop_loss", 0),
-                            entry)
-                        logger.info("팀 B 매수 기록 완료 | ticker=%s qty=%d entry=%d",
-                                    ticker, qty, entry)
-                        add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인) · KIS")
+                            add_timeline_event("매수", f"팀B — {name} {entry:,}원 × {qty}주 (Gemini+R1 승인) [{order_type}] · KIS")
+                            try:
+                                with sqlite3.connect(DB_PATH) as conn:
+                                    conn.execute("""
+                                        INSERT INTO ai_decision_log
+                                            (decided_at, team, model, stage, action, ticker, name,
+                                             trade_type, reason, confidence, quantity, target_price,
+                                             stop_loss, raw_response)
+                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    """, (
+                                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        "B",
+                                        "DeepSeek V3 + Gemini Pro + R1",
+                                        "최종결정",
+                                        "매수",
+                                        ticker,
+                                        name,
+                                        result_b.get("type", "단타"),
+                                        result_b.get("reason", ""),
+                                        result_b.get("confidence", ""),
+                                        qty,
+                                        result_b.get("target_price", 0),
+                                        result_b.get("stop_loss", 0),
+                                        f"order_type={order_type} entry={entry}",
+                                    ))
+                            except Exception as e:
+                                logger.error("ai_decision_log 기록 실패: %s", e)
             except Exception as e:
                 logger.error("팀 B 실패 | ticker=%s error=%s", ticker, e)
 

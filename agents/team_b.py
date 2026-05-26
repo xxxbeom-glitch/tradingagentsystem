@@ -112,6 +112,11 @@ SYSTEM_PROMPT_TEMPLATE = """너는 한국 주식 단타/스윙 전문 투자 에
 - quantity가 0이면 action을 관망으로 변경
 - 분할 매수: 한 종목에 가용 현금의 50% 초과 금지
 
+[현금/종목 수 제한 — 반드시 준수]
+- 최소 현금 보유: 가용 현금(available_cash)이 300,000원 이하이면 action을 반드시 "관망"으로 변경
+- 최대 보유 종목: 현재 보유 종목이 4개 이상이면 action을 반드시 "관망"으로 변경
+- 위 두 조건 중 하나라도 해당하면 신규 매수 절대 금지
+
 [목표가/손절가 계산 규칙 — 반드시 준수]
 - type이 "단타"인 경우:
   target_price = int(entry_price * 1.04)  # +4%
@@ -189,7 +194,7 @@ def analyze_with_deepseek_v3(stock_data: dict[str, Any]) -> str:
             triggers=stock_data.get("triggers", []),
             disclosures=stock_data.get("disclosures", []),
             portfolio=stock_data.get("portfolio", []),
-            available_cash=stock_data.get("available_cash", 500000),
+            available_cash=stock_data.get("available_cash", 1000000),
         )
 
         response = client.chat.completions.create(

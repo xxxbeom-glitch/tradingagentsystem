@@ -6,29 +6,36 @@
 <title>Trading Agent System</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
   :root {
-    --bg: #0a0c0f;
-    --surface: #111318;
-    --surface2: #181c22;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.12);
-    --text: #e8eaf0;
-    --text2: #8890a0;
-    --text3: #545c6a;
-    --green: #1fd67a;
-    --green-dim: rgba(31,214,122,0.1);
-    --red: #ff4d6a;
-    --red-dim: rgba(255,77,106,0.1);
-    --blue: #4d9fff;
-    --blue-dim: rgba(77,159,255,0.1);
-    --amber: #ffb84d;
-    --amber-dim: rgba(255,184,77,0.1);
-    --purple: #a78bfa;
-    --purple-dim: rgba(167,139,250,0.1);
+    --bg: #f5f5f0;
+    --surface: #ffffff;
+    --surface2: #f0f0eb;
+    --border: rgba(0, 0, 0, 0.08);
+    --border2: rgba(0, 0, 0, 0.15);
+    --text: #1a1a1a;
+    --text2: #555555;
+    --text3: #999999;
+    --green: #00875a;
+    --green-dim: rgba(0, 135, 90, 0.08);
+    --red: #d93025;
+    --red-dim: rgba(217, 48, 37, 0.08);
+    --blue: #1a73e8;
+    --blue-dim: rgba(26, 115, 232, 0.08);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245, 158, 11, 0.08);
+    --purple: #7c3aed;
+    --purple-dim: rgba(124, 58, 237, 0.08);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
+    --radius: 12px;
   }
 
   body {
@@ -36,182 +43,288 @@
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    padding: 0;
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
   }
 
-  .mono { font-family: 'Space Mono', monospace; }
+  .mono {
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  /* 버튼 */
+  button,
+  .btn {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px;
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  button:hover,
+  .btn:hover {
+    background: var(--surface2);
+    border-color: var(--border2);
+    color: var(--text);
+  }
 
   /* 헤더 */
   header {
-    padding: 20px 32px;
+    padding: 22px 32px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: sticky;
     top: 0;
-    background: rgba(10,12,15,0.95);
-    backdrop-filter: blur(10px);
+    background: var(--surface);
+    box-shadow: none;
     z-index: 100;
+    order: 0;
+    width: 100%;
   }
+
   .logo {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
   }
+
   .logo-dot {
-    width: 8px; height: 8px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: var(--green);
-    box-shadow: 0 0 8px var(--green);
-    animation: pulse 2s infinite;
+    box-shadow: 0 0 0 3px var(--green-dim);
+    animation: pulse 2s ease-in-out infinite;
   }
+
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.65; transform: scale(0.92); }
   }
+
   .logo-text {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 13px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     color: var(--text);
   }
+
   .header-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 24px;
   }
+
   .status-badge {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 4px;
+    padding: 5px 12px;
+    border-radius: 6px;
     background: var(--green-dim);
     color: var(--green);
-    border: 1px solid rgba(31,214,122,0.2);
-    letter-spacing: 0.06em;
+    border: 1px solid rgba(0, 135, 90, 0.2);
+    letter-spacing: 0.04em;
+    font-weight: 700;
   }
+
   .header-time {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 12px;
     color: var(--text3);
   }
 
-  /* 메인 레이아웃 */
-  main {
-    padding: 32px 36px;
-    max-width: 1400px;
-    margin: 0 auto;
+  /* 전체 2열 레이아웃 */
+  .dashboard-layout {
+    display: flex;
+    flex: 1;
+    align-items: stretch;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+    min-height: 0;
+  }
+
+  .dashboard-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dashboard-left main,
+  main.dashboard-left {
+    width: 100%;
+    max-width: 100%;
+    padding: 28px 32px;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  .dashboard-right {
+    width: 300px;
+    min-width: 300px;
+    flex: 0 0 300px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--surface2);
+    border-left: 1px solid var(--border);
+    box-sizing: border-box;
   }
 
   /* 섹션 타이틀 */
   .section-label {
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.12em;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
     color: var(--text3);
     text-transform: uppercase;
-    margin-bottom: 14px;
+    margin-bottom: 24px;
   }
 
   /* 팀 그리드 */
   .teams-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 28px;
+    align-items: stretch;
+    gap: 20px;
+    margin-bottom: 24px;
   }
 
   /* 팀 카드 */
   .team-card {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: none;
+    min-height: 520px;
+    height: 100%;
+    align-self: stretch;
     overflow: hidden;
-    transition: border-color 0.2s;
+    display: grid;
+    grid-template-columns: 60% 40%;
+    grid-template-rows: 88px 76px minmax(160px, 1fr) 56px;
   }
-  .team-card:hover { border-color: var(--border2); }
+
+  .team-card:hover {
+    box-shadow: none;
+  }
 
   .team-header {
-    padding: 20px 22px 16px;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 88px;
+    padding: 20px 24px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
+    background: var(--surface);
+    box-sizing: border-box;
   }
+
   .team-name-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
+    gap: 10px;
+    margin-bottom: 6px;
   }
+
   .team-tag {
     font-size: 10px;
     font-weight: 700;
-    font-family: 'Space Mono', monospace;
-    padding: 2px 7px;
-    border-radius: 3px;
+    font-family: 'Noto Sans KR', sans-serif;
+    padding: 3px 8px;
+    border-radius: 4px;
     letter-spacing: 0.06em;
   }
+
   .tag-speed {
     background: var(--amber-dim);
-    color: var(--amber);
-    border: 1px solid rgba(255,184,77,0.2);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.25);
   }
+
   .tag-verify {
     background: var(--purple-dim);
     color: var(--purple);
-    border: 1px solid rgba(167,139,250,0.2);
+    border: 1px solid rgba(124, 58, 237, 0.2);
   }
+
   .team-name {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--text);
   }
+
   .team-engines {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text3);
     margin-top: 2px;
   }
+
   .team-pnl {
     text-align: right;
   }
+
   .pnl-value {
-    font-family: 'Space Mono', monospace;
-    font-size: 22px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 24px;
     font-weight: 700;
-    line-height: 1;
+    line-height: 1.1;
+    color: var(--text);
   }
+
   .pnl-positive { color: var(--green); }
   .pnl-negative { color: var(--red); }
+
   .pnl-sub {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text3);
-    margin-top: 3px;
+    margin-top: 4px;
   }
 
   /* 시드 / 평가금액 행 */
   .team-meta {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 76px;
     display: flex;
     gap: 0;
     border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    background: var(--surface2);
+    box-sizing: border-box;
   }
+
   .meta-item {
     flex: 1;
-    padding: 14px 22px;
+    padding: 20px 24px;
     border-right: 1px solid var(--border);
+    box-sizing: border-box;
   }
+
   .meta-item:last-child { border-right: none; }
+
   .meta-label {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text3);
-    margin-bottom: 4px;
-    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
   }
+
   .meta-value {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 14px;
     font-weight: 700;
     color: var(--text);
@@ -219,168 +332,271 @@
 
   /* 보유 종목 */
   .holdings {
-    padding: 16px 22px;
+    grid-column: 1;
+    grid-row: 3;
+    min-height: 160px;
+    padding: 20px 24px;
     border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    max-height: none;
+    overflow-y: auto;
+    box-sizing: border-box;
   }
+
+  .holdings::-webkit-scrollbar { width: 5px; }
+  .holdings::-webkit-scrollbar-track { background: var(--surface2); border-radius: 3px; }
+  .holdings::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
   .holdings-label {
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 600;
     color: var(--text3);
-    margin-bottom: 10px;
-    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
   }
+
   .holding-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 0;
+    padding: 10px 0;
     border-bottom: 1px solid var(--border);
   }
+
   .holding-row:last-child { border-bottom: none; }
+
   .holding-left {
     display: flex;
     align-items: center;
     gap: 10px;
   }
+
   .holding-ticker {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 13px;
     font-weight: 700;
     color: var(--text);
     min-width: 70px;
   }
+
   .holding-name {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text3);
+    margin-top: 2px;
   }
+
   .holding-right {
     display: flex;
     align-items: center;
     gap: 16px;
   }
+
   .holding-price {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 12px;
     color: var(--text2);
     text-align: right;
   }
+
   .holding-badge {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 11px;
     font-weight: 700;
-    padding: 2px 8px;
+    padding: 3px 8px;
     border-radius: 4px;
     min-width: 60px;
     text-align: center;
   }
+
   .badge-up {
     background: var(--green-dim);
     color: var(--green);
   }
+
   .badge-down {
     background: var(--red-dim);
     color: var(--red);
   }
+
   .holding-weight {
-    font-size: 10px;
-    color: var(--text3);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 11px;
+    color: var(--text2);
     min-width: 36px;
     text-align: right;
   }
 
   /* 에이전트 상태 */
   .agent-status {
-    padding: 14px 22px;
-    border-bottom: 1px solid var(--border);
+    grid-column: 1;
+    grid-row: 4;
+    min-height: 56px;
+    padding: 20px 24px;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: var(--surface);
+    box-sizing: border-box;
   }
+
   .status-row {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
   }
+
   .status-dot {
-    width: 6px; height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
   }
+
   .dot-active {
     background: var(--green);
-    box-shadow: 0 0 5px var(--green);
-    animation: pulse 2s infinite;
+    box-shadow: 0 0 0 3px var(--green-dim);
+    animation: pulse 2s ease-in-out infinite;
   }
+
   .dot-wait {
     background: var(--amber);
+    box-shadow: 0 0 0 3px var(--amber-dim);
   }
+
   .status-text {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text2);
   }
+
   .last-action {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text3);
-    font-family: 'Space Mono', monospace;
+    font-family: 'Noto Sans KR', sans-serif;
   }
 
   /* AI 판단 로그 */
   .log-section {
-    padding: 16px 22px;
+    grid-column: 2;
+    grid-row: 2 / 5;
+    padding: 20px 24px;
+    max-height: none;
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
   }
+
   .log-label {
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 600;
     color: var(--text3);
     margin-bottom: 10px;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
   }
-  .log-entry {
-    padding: 10px 12px;
-    background: var(--surface2);
-    border-radius: 6px;
-    border-left: 2px solid var(--border2);
-    margin-bottom: 8px;
-  }
-  .log-entry:last-child { margin-bottom: 0; }
-  .log-entry.entry-buy { border-left-color: var(--green); }
-  .log-entry.entry-sell { border-left-color: var(--red); }
-  .log-entry.entry-verify { border-left-color: var(--purple); }
-  .log-time {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--text3);
-    margin-bottom: 4px;
-  }
-  .log-text {
+
+  #team-a-log,
+  #team-b-log {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 12px;
-    color: var(--text2);
-    line-height: 1.6;
+    line-height: 1.8;
+    color: var(--text);
   }
-  .log-text strong { color: var(--text); font-weight: 500; }
+
+  #team-a-log::-webkit-scrollbar,
+  #team-b-log::-webkit-scrollbar { width: 5px; }
+  #team-a-log::-webkit-scrollbar-track,
+  #team-b-log::-webkit-scrollbar-track { background: var(--surface2); border-radius: 3px; }
+  #team-a-log::-webkit-scrollbar-thumb,
+  #team-b-log::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  .ai-log-line {
+    margin-bottom: 14px;
+    padding: 0;
+    background: none;
+    border: none;
+    word-break: break-word;
+  }
+
+  .ai-log-line:last-child {
+    margin-bottom: 0;
+  }
+
+  .ai-log-head {
+    color: var(--text);
+  }
+
+  .ai-log-time {
+    color: var(--text3);
+  }
+
+  .ai-log-badge {
+    font-weight: 700;
+  }
+
+  .ai-log-line.action-buy .ai-log-badge { color: var(--green); }
+  .ai-log-line.action-sell .ai-log-badge { color: var(--red); }
+  .ai-log-line.action-hold .ai-log-badge { color: var(--text3); }
+
+  .ai-log-meta {
+    color: var(--text);
+  }
+
+  .ai-log-text {
+    padding-left: 1.25em;
+    color: var(--text2);
+    margin-top: 2px;
+    white-space: pre-wrap;
+  }
+
+  .ai-log-verify {
+    padding-left: 1.25em;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .ai-log-empty {
+    color: var(--text3);
+    padding: 4px 0;
+  }
 
   /* 하단 섹션 — 수익률 차트 + 회차 비교 */
   .bottom-grid {
     display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 16px;
-    margin-bottom: 28px;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
   }
 
   .card {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-  }
-  .card-title {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text2);
-    margin-bottom: 18px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: none;
+    padding: 20px 24px;
   }
 
-  /* 기간별 수익률 차트 */
+  .card:hover {
+    box-shadow: none;
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   .chart-wrap {
     position: relative;
     height: 220px;
@@ -390,129 +606,294 @@
   .rounds-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 12px;
+    font-size: 13px;
   }
+
   .rounds-table th {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text3);
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    padding: 0 8px 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0 10px 12px;
     text-align: left;
     border-bottom: 1px solid var(--border);
   }
+
   .rounds-table td {
-    padding: 10px 8px;
+    padding: 12px 10px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
+    color: var(--text2);
   }
+
   .rounds-table tr:last-child td { border-bottom: none; }
+
   .round-num {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--text3);
-  }
-  .round-date {
-    font-size: 11px;
-    color: var(--text3);
-  }
-  .round-pnl {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 12px;
+    color: var(--text3);
+  }
+
+  .round-date {
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  .round-pnl {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
     font-weight: 700;
   }
+
   .win-badge {
     font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 3px;
-    font-family: 'Space Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'Noto Sans KR', sans-serif;
     font-weight: 700;
   }
-  .win-a { background: var(--amber-dim); color: var(--amber); }
-  .win-b { background: var(--purple-dim); color: var(--purple); }
-  .win-tie { background: rgba(255,255,255,0.04); color: var(--text3); }
-  .in-progress {
-    font-size: 10px;
+
+  .win-a {
+    background: var(--amber-dim);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+
+  .win-b {
+    background: var(--purple-dim);
+    color: var(--purple);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+  }
+
+  .win-tie {
+    background: var(--surface2);
     color: var(--text3);
-    font-family: 'Space Mono', monospace;
+    border: 1px solid var(--border);
+  }
+
+  .in-progress {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'Noto Sans KR', sans-serif;
   }
 
   /* 누적 요약 바 */
   .summary-bar {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 28px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
   }
+
   .summary-item {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 18px 20px;
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: none;
+    padding: 20px 24px;
   }
+
+  .summary-item:hover {
+    box-shadow: none;
+  }
+
   .summary-label {
-    font-size: 10px;
-    color: var(--text3);
-    letter-spacing: 0.06em;
-    margin-bottom: 6px;
-  }
-  .summary-value {
-    font-family: 'Space Mono', monospace;
-    font-size: 20px;
-    font-weight: 700;
-  }
-  .summary-sub {
     font-size: 11px;
+    font-weight: 600;
     color: var(--text3);
-    margin-top: 2px;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .summary-value {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .summary-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 6px;
   }
 
   /* 실시간 감시 로그 */
   .timeline-panel {
-    background: #0d1015;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 20px;
-    margin-bottom: 28px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 20px 24px;
+    margin-bottom: 0;
+    width: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
   }
+
+  .timeline-panel:hover {
+    box-shadow: none;
+  }
+
   .timeline-title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    letter-spacing: 0.06em;
-    color: var(--text2);
+    letter-spacing: 0.02em;
+    color: var(--text);
     margin-bottom: 12px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    background: var(--surface2);
+    z-index: 1;
+    padding-bottom: 8px;
   }
+
   .timeline-body {
-    max-height: 260px;
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    max-height: none;
     overflow-y: auto;
-    background: #0a0c10;
-    border: 1px solid var(--border);
+    background: var(--surface);
+    border: none;
     border-radius: 8px;
-    padding: 12px 14px;
-    font-family: 'Space Mono', monospace;
+    padding: 14px 16px;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 12px;
-    line-height: 1.75;
+    line-height: 1.8;
+    box-shadow: none;
   }
-  .timeline-line { color: var(--text); word-break: break-word; }
-  .timeline-time { color: var(--text3); }
-  .timeline-badge { font-size: 11px; font-weight: 700; }
-  .timeline-line.tl-trigger .timeline-badge { color: var(--blue); }
-  .timeline-line.tl-buy .timeline-badge { color: var(--green); }
-  .timeline-line.tl-sell .timeline-badge { color: var(--red); }
-  .timeline-line.tl-disclosure .timeline-badge { color: var(--amber); }
+
+  .timeline-body::-webkit-scrollbar { width: 5px; }
+  .timeline-body::-webkit-scrollbar-track { background: var(--surface2); border-radius: 3px; }
+  .timeline-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  .timeline-line {
+    color: var(--text);
+    word-break: break-word;
+    padding: 2px 0;
+  }
+
+  .timeline-time {
+    color: var(--text3);
+  }
+
+  .timeline-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  .timeline-line.tl-trigger .timeline-badge {
+    color: var(--blue);
+    background: var(--blue-dim);
+  }
+
+  .timeline-line.tl-buy .timeline-badge {
+    color: var(--green);
+    background: var(--green-dim);
+  }
+
+  .timeline-line.tl-sell .timeline-badge {
+    color: var(--red);
+    background: var(--red-dim);
+  }
+
+  .timeline-line.tl-disclosure .timeline-badge {
+    color: #b45309;
+    background: var(--amber-dim);
+  }
+
   .timeline-empty {
     text-align: center;
     color: var(--text3);
-    padding: 12px 0;
-    font-family: 'Space Mono', monospace;
+    padding: 16px 0;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px;
   }
 
   /* 반응형 */
   @media (max-width: 900px) {
-    .teams-grid, .bottom-grid { grid-template-columns: 1fr; }
-    .summary-bar { grid-template-columns: 1fr 1fr; }
-    main { padding: 20px 16px; }
-    header { padding: 16px; }
+    .dashboard-layout {
+      flex-direction: column;
+      padding: 18px;
+      gap: 20px;
+    }
+
+    .dashboard-left,
+    .dashboard-right {
+      flex: 1 1 auto;
+      width: 100%;
+    }
+
+    .dashboard-right {
+      position: static;
+      width: 100%;
+      min-width: 0;
+      flex: 1 1 auto;
+      height: auto;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .timeline-panel {
+      min-height: auto;
+    }
+
+    header {
+      padding: 18px 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .teams-grid,
+    .bottom-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .summary-bar {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .header-right {
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .team-card {
+      grid-template-columns: 1fr;
+      grid-template-rows: 88px 76px minmax(120px, 1fr) 56px auto;
+      min-height: 520px;
+      height: auto;
+    }
+
+    .team-header { grid-column: 1; grid-row: 1; }
+    .team-meta {
+      grid-column: 1;
+      grid-row: 2;
+      border-right: none;
+    }
+    .holdings {
+      grid-column: 1;
+      grid-row: 3;
+      border-right: none;
+    }
+    .agent-status {
+      grid-column: 1;
+      grid-row: 4;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .log-section {
+      grid-column: 1;
+      grid-row: 5;
+      max-height: 220px;
+      height: auto;
+    }
   }
 </style>
 </head>
@@ -530,6 +911,8 @@
   </div>
 </header>
 
+<div class="dashboard-layout">
+<div class="dashboard-left">
 <main>
 
   <!-- 누적 요약 -->
@@ -709,20 +1092,22 @@
   </div>
 
 </main>
+</div>
 
-<main style="padding-top:0;">
+<aside class="dashboard-right">
   <div class="timeline-panel" aria-label="실시간 감시 로그">
     <div class="timeline-title">실시간 감시 로그</div>
     <div class="timeline-body" id="timelineBody">
       <div class="timeline-empty">감시 데이터 대기중...</div>
     </div>
   </div>
-</main>
+</aside>
+</div>
 
 <script>
-  const PORTFOLIO_URL = 'https://raw.githubusercontent.com/xxxbeom-glitch/tradingagentsystem/main/portfolio.json';
-  const TIMELINE_URL = 'https://raw.githubusercontent.com/xxxbeom-glitch/tradingagentsystem/main/timeline.json';
-  const REFRESH_INTERVAL_MS = 30000;
+  const PORTFOLIO_URL = '/portfolio.json';
+  const TIMELINE_URL = '/timeline.json';
+  const REFRESH_INTERVAL_MS = 10000;
 
   let returnsChart = null;
 
@@ -791,30 +1176,36 @@
     }).join('');
   }
 
-  function logEntryClass(entry) {
-    const action = entry.action || '';
-    if (action === '매수') return 'entry-buy';
-    if (action === '매도') return 'entry-sell';
-    if (entry.verification) return 'entry-verify';
-    return '';
+  function aiLogActionClass(action) {
+    if (action === '매수') return 'action-buy';
+    if (action === '매도') return 'action-sell';
+    return 'action-hold';
   }
 
   function buildAiLogHtml(aiLog) {
     if (!aiLog || aiLog.length === 0) {
-      return '<div class="log-entry"><div class="log-text" style="color:var(--text3);">판단 기록 없음</div></div>';
+      return '<div class="ai-log-empty">판단 기록 없음</div>';
     }
     return aiLog.map(entry => {
-      const cls = logEntryClass(entry);
-      const name = entry.name || '';
-      const ticker = entry.ticker || '';
-      const label = [entry.time, entry.action, name || ticker].filter(Boolean).join(' — ');
-      const verification = entry.verification ? `<br>검증: <strong>${entry.verification}</strong>` : '';
-      const confidence = entry.confidence ? ` · 신뢰도 ${entry.confidence}` : '';
+      const time = entry.time || '—';
+      const action = entry.action || '관망';
+      const cls = aiLogActionClass(action);
+      const name = entry.name || entry.ticker || '—';
+      const confidence = entry.confidence ? ` · ${entry.confidence}` : '';
       const reason = entry.reason || '';
+      const verify = entry.verification
+        ? `<div class="ai-log-verify">검증: ${entry.verification}</div>`
+        : '';
+      const body = reason ? `<div class="ai-log-text">${reason}</div>` : '';
       return `
-        <div class="log-entry ${cls}">
-          <div class="log-time">${label}${confidence}</div>
-          <div class="log-text">${reason}${verification}</div>
+        <div class="ai-log-line ${cls}">
+          <div class="ai-log-head">
+            <span class="ai-log-time">[${time}]</span>
+            <span class="ai-log-badge">[${action}]</span>
+            <span class="ai-log-meta">${name}${confidence}</span>
+          </div>
+          ${body}
+          ${verify}
         </div>`;
     }).join('');
   }

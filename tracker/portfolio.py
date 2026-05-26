@@ -20,7 +20,7 @@ LOG_PATH = os.path.join(ROOT_DIR, "logs", "portfolio", "portfolio.log")
 BUY_FEE_RATE = 0.00015   # 매수 수수료 0.015%
 SELL_FEE_RATE = 0.00015  # 매도 수수료 0.015%
 TAX_RATE = 0.0018        # 증권거래세 0.18%
-SEED = 500_000           # 시드머니
+SEED = 1_000_000           # 시드머니
 
 
 def _setup_logger() -> logging.Logger:

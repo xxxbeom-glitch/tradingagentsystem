@@ -149,17 +149,17 @@ def init_db():
     if cursor.fetchone()[0] == 0:
         cursor.execute("""
             INSERT INTO balance (team, recorded_at, seed_amount, cash, stock_value, total_value, pnl, pnl_rate)
-            VALUES ('A', ?, 500000, 500000, 0, 500000, 0, 0.0)
+            VALUES ('A', ?, 1000000, 1000000, 0, 1000000, 0, 0.0)
         """, (now,))
-        print("  ✓ 팀 A 초기 잔고 500,000원 설정")
+        print("  ✓ 팀 A 초기 잔고 1,000,000원 설정")
 
     cursor.execute("SELECT COUNT(*) FROM balance WHERE team = 'B'")
     if cursor.fetchone()[0] == 0:
         cursor.execute("""
             INSERT INTO balance (team, recorded_at, seed_amount, cash, stock_value, total_value, pnl, pnl_rate)
-            VALUES ('B', ?, 500000, 500000, 0, 500000, 0, 0.0)
+            VALUES ('B', ?, 1000000, 1000000, 0, 1000000, 0, 0.0)
         """, (now,))
-        print("  ✓ 팀 B 초기 잔고 500,000원 설정")
+        print("  ✓ 팀 B 초기 잔고 1,000,000원 설정")
 
     conn.commit()
     conn.close()
