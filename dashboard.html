@@ -718,8 +718,12 @@
       const buyPrice = Number(h.buy_price) || 0;
       const qty = Number(h.quantity) || 0;
       const tradeType = h.trade_type || '단타';
-      const target = Number(h.target_price) || 0;
-      const stop = Number(h.stop_loss) || 0;
+      const currentPrice = Number(h.current_price) || buyPrice;
+      const pnlRate = buyPrice > 0 ? ((currentPrice - buyPrice) / buyPrice) * 100 : 0;
+      const pnlAmount = (currentPrice - buyPrice) * qty;
+      const pnlColor = pnlRate > 0 ? 'var(--green)' : (pnlRate < 0 ? 'var(--red)' : 'var(--text2)');
+      const signedRate = (pnlRate > 0 ? '+' : '') + pnlRate.toFixed(2) + '%';
+      const signedAmount = (pnlAmount > 0 ? '+' : '') + pnlAmount.toLocaleString('ko-KR') + '원';
       return `
         <div class="holding-row">
           <div class="holding-left">
@@ -729,8 +733,8 @@
             </div>
           </div>
           <div class="holding-right">
-            <div class="holding-price">목표 ${target ? target.toLocaleString('ko-KR') + '원' : '—'}<br><span style="font-size:10px;color:var(--text3)">손절 ${stop ? stop.toLocaleString('ko-KR') + '원' : '—'}</span></div>
-            <div class="holding-weight">${h.bought_at || ''}</div>
+            <div class="holding-price">현재 ${currentPrice.toLocaleString('ko-KR')}원<br><span style="font-size:10px;color:${pnlColor}">${signedRate}</span></div>
+            <div class="holding-weight" style="color:${pnlColor}">${signedAmount}</div>
           </div>
         </div>`;
     }).join('');
@@ -787,7 +791,7 @@
     const cashEl = document.getElementById(prefix + '-cash');
     if (cashEl) cashEl.textContent = fmtWon(t.cash);
     const investedEl = document.getElementById(prefix + '-invested');
-    if (investedEl) investedEl.textContent = fmtWon(t.invested);
+    if (investedEl) investedEl.textContent = '500,000원';
     const holdingsEl = document.getElementById(prefix + '-holdings');
     if (holdingsEl) holdingsEl.innerHTML = buildHoldingsHtml(t.holdings);
     const logEl = document.getElementById(prefix + '-log');
