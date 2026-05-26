@@ -351,6 +351,7 @@ def run_cycle() -> None:
     logger.info("=" * 60)
     logger.info("사이클 시작 | %s | 시간대: %s", now, slot)
 
+    kis_client = None
     try:
         from tracker.portfolio import check_pending_orders
 
@@ -364,7 +365,12 @@ def run_cycle() -> None:
         )
     except Exception as e:
         logger.error("미체결 주문 점검 실패: %s", e)
-        kis_client = KISClient()
+
+    if kis_client is None:
+        try:
+            kis_client = KISClient()
+        except Exception as e:
+            logger.error("KISClient 초기화 실패: %s", e)
 
     now_dt = datetime.now()
     if now_dt.hour > 15 or (now_dt.hour == 15 and now_dt.minute >= 30):
