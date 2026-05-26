@@ -58,6 +58,24 @@ def _now_str() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _append_trade_log_csv_row(record: dict[str, Any]) -> None:
+    """trade_log 1건을 logs/trades/YYYY-MM-DD.csv에 즉시 append."""
+    today = datetime.now().strftime("%Y-%m-%d")
+    dir_path = os.path.join(ROOT_DIR, "logs", "trades")
+    os.makedirs(dir_path, exist_ok=True)
+    path = os.path.join(dir_path, f"{today}.csv")
+    row = {col: record.get(col) for col in TRADE_LOG_CSV_COLUMNS}
+    write_header = not os.path.isfile(path) or os.path.getsize(path) == 0
+    df = pd.DataFrame([row])
+    df.to_csv(
+        path,
+        mode="a",
+        header=write_header,
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+
 def _append_buy_trade_log(
     team: str,
     ticker: str,
@@ -69,7 +87,7 @@ def _append_buy_trade_log(
     fill_price: int | None = None,
 ) -> int:
     """매수 시도 trade_log 기록. 추가된 행 인덱스 반환."""
-    trade_log.append({
+    entry = {
         "일시": _now_str(),
         "종목코드": ticker,
         "종목명": name,
@@ -79,7 +97,9 @@ def _append_buy_trade_log(
         "체결시현재가": fill_price,
         "결과": result,
         "사유": reason,
-    })
+    }
+    trade_log.append(entry)
+    _append_trade_log_csv_row(entry)
     return len(trade_log) - 1
 
 
@@ -87,6 +107,11 @@ def _update_trade_log(log_index: int, **updates: Any) -> None:
     """trade_log 항목 업데이트 (미체결 → 체결/취소)."""
     if 0 <= log_index < len(trade_log):
         trade_log[log_index].update(updates)
+        if "취소" in str(updates.get("결과", "")):
+            row = {**trade_log[log_index]}
+            row["결과"] = "취소"
+            row["사유"] = "15:20 미체결 자동취소"
+            _append_trade_log_csv_row(row)
 
 
 def get_today_trade_log() -> list[dict[str, Any]]:
@@ -312,6 +337,11 @@ def buy(
 
     logger.info("매수 | team=%s ticker=%s name=%s price=%d qty=%d fee=%d total=%d",
                 team, ticker, name, price, quantity, fee, total_cost)
+    if _skip_fill_check:
+        for r in reversed(trade_log):
+            if r.get("종목코드") == ticker and str(r.get("팀")) == str(team):
+                _append_trade_log_csv_row(r)
+                break
     return {
         "team": team,
         "ticker": ticker,
@@ -379,18 +409,24 @@ def sell(
     return_pct = (
         round((price - buy_price) / buy_price * 100, 2) if buy_price > 0 else 0.0
     )
-    trade_log.append({
+    sell_entry = {
         "일시": _now_str(),
         "종목코드": ticker,
         "종목명": stock_name,
         "팀": team,
+        "지정가": price,
+        "시도시현재가": price,
+        "체결시현재가": price,
+        "결과": "체결",
+        "사유": sell_reason,
         "구분": "매도",
         "매도사유": sell_reason,
         "매수가": buy_price,
         "매도가": price,
         "수익률": return_pct,
-        "결과": "체결",
-    })
+    }
+    trade_log.append(sell_entry)
+    _append_trade_log_csv_row(sell_entry)
 
     logger.info("매도 | team=%s ticker=%s price=%d qty=%d fee=%d tax=%d pnl=%d",
                 team, ticker, price, quantity, fee, tax, pnl)
