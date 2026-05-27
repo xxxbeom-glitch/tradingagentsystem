@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-27 12:24:09",
+  "updated_at": "2026-05-27 12:30:23",
   "team_a": {
     "cash": 41337,
     "invested": 958520,
@@ -26,10 +26,10 @@
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7350,
+        "current_price": 7370,
         "quantity": 14,
-        "pnl_amount": 2380,
-        "pnl_rate": 2.37,
+        "pnl_amount": 2660,
+        "pnl_rate": 2.65,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -139,6 +139,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "12:30:23",
+        "action": "관망",
+        "ticker": "004440",
+        "name": "삼일씨엔에스",
+        "reason": "팀 B의 핵심 판단 기준인 '수급' 점수가 2점으로 매우 낮고, 외국인/기관 순매수 동력이 없어 진입 근거가 부족합니다.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 7,
+          "수급": 2,
+          "재무": 5,
+          "모멘텀": 5,
+          "뉴스": 3
+        },
+        "verification": "거절"
+      },
       {
         "time": "12:24:09",
         "action": "관망",
@@ -439,22 +455,6 @@
           "수급": 0,
           "재무": 6,
           "모멘텀": 7,
-          "뉴스": 5
-        },
-        "verification": "거절"
-      },
-      {
-        "time": "10:27:46",
-        "action": "관망",
-        "ticker": "122900",
-        "name": "아이마켓코리아",
-        "reason": "팀 B 원칙에 따라, 외국인/기관의 명확한 수급 근거가 없어 매수 기준에 미달함. 거래량만으로는 진입 불가.",
-        "confidence": "LOW",
-        "scores": {
-          "리스크": 5,
-          "수급": 3,
-          "재무": 6,
-          "모멘텀": 6,
           "뉴스": 5
         },
         "verification": "거절"
