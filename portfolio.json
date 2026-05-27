@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-27 13:33:00",
+  "updated_at": "2026-05-27 13:39:20",
   "team_a": {
     "cash": 41337,
     "invested": 958520,
@@ -26,10 +26,10 @@
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7410,
+        "current_price": 7390,
         "quantity": 14,
-        "pnl_amount": 3220,
-        "pnl_rate": 3.2,
+        "pnl_amount": 2940,
+        "pnl_rate": 2.92,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -139,6 +139,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "13:39:20",
+        "action": "관망",
+        "ticker": "006660",
+        "name": "삼성공조",
+        "reason": "팀 B의 2순위 원칙인 '수급' 조건(외국인/기관 순매수)을 충족하지 못하여 매수 대상에서 제외합니다.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 4,
+          "수급": 0,
+          "재무": 5,
+          "모멘텀": 8,
+          "뉴스": 5
+        },
+        "verification": "거절"
+      },
       {
         "time": "13:33:00",
         "action": "관망",
@@ -439,22 +455,6 @@
           "수급": 2,
           "재무": 5,
           "모멘텀": 3,
-          "뉴스": 5
-        },
-        "verification": "거절"
-      },
-      {
-        "time": "11:34:35",
-        "action": "관망",
-        "ticker": "001560",
-        "name": "제일연마",
-        "reason": "거래량만 증가했을 뿐, 외국인/기관 수급 부재 및 주가 급락(-4.75%)으로 모멘텀이 소멸되어 '잃지 않는 투자' 원칙에 따라 진입 불가",
-        "confidence": "LOW",
-        "scores": {
-          "리스크": 3,
-          "수급": 2,
-          "재무": 5,
-          "모멘텀": 4,
           "뉴스": 5
         },
         "verification": "거절"
