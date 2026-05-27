@@ -1,15 +1,44 @@
 {
-  "updated_at": "2026-05-27 10:01:26",
+  "updated_at": "2026-05-27 10:08:14",
   "team_a": {
-    "cash": 1000000,
-    "invested": 0,
-    "total_value": 1000000,
-    "return_pct": 0.0,
+    "cash": 899465,
+    "invested": 100520,
+    "total_value": 999985,
+    "return_pct": -0.0,
     "realized_pnl": 0,
     "total_trades": 0,
     "win_rate": 0.0,
-    "holdings": [],
+    "holdings": [
+      {
+        "ticker": "122900",
+        "name": "아이마켓코리아",
+        "buy_price": 7180,
+        "current_price": 7780,
+        "quantity": 14,
+        "pnl_amount": 8400,
+        "pnl_rate": 8.36,
+        "trade_type": "단타",
+        "target_price": 0,
+        "stop_loss": 0,
+        "bought_at": "2026-05-27 10:07:52"
+      }
+    ],
     "ai_log": [
+      {
+        "time": "10:08:14",
+        "action": "매수",
+        "ticker": "122900",
+        "name": "아이마켓코리아",
+        "reason": "Gemini Flash 분석에서 거래량이 급증해 모멘텀이 9점으로 강력합니다. 수급은 0점이지만, 오늘 외국인이 처음으로 순매수 전환한 점(외국인 순매수 상위)과 거래량 폭발이 수급을 대체할 정도라 판단, 팀 A의 '모멘텀 우선' 철학에 따라 진입합니다.",
+        "confidence": "MEDIUM",
+        "scores": {
+          "수급": 5,
+          "모멘텀": 9,
+          "섹터": 5,
+          "뉴스": 0
+        },
+        "verification": ""
+      },
       {
         "time": "10:01:26",
         "action": "관망",
@@ -37,6 +66,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "10:08:14",
+        "action": "관망",
+        "ticker": "122900",
+        "name": "아이마켓코리아",
+        "reason": "핵심 요건인 외국인/기관 수급(2/10점)이 부재하며, 거래량 증가만으로는 진입 근거가 불충분하여 리스크 관리 원칙에 따라 관망.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 7,
+          "수급": 2,
+          "재무": 7,
+          "모멘텀": 6,
+          "뉴스": 5
+        },
+        "verification": "거절"
+      },
       {
         "time": "10:01:26",
         "action": "관망",
