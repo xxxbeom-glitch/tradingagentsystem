@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-27 10:57:37",
+  "updated_at": "2026-05-27 11:03:47",
   "team_a": {
     "cash": 41337,
     "invested": 958520,
@@ -26,10 +26,10 @@
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7180,
+        "current_price": 7710,
         "quantity": 14,
-        "pnl_amount": 0,
-        "pnl_rate": 0.0,
+        "pnl_amount": 7420,
+        "pnl_rate": 7.38,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -139,6 +139,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "11:03:47",
+        "action": "관망",
+        "ticker": "055490",
+        "name": "테이팩스",
+        "reason": "DeepSeek V3 분석에 동의. 팀 B의 2순위 판단 기준인 '수급'이 전무(점수: 0)하여 매수 근거가 부족함.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 3,
+          "수급": 0,
+          "재무": 7,
+          "모멘텀": 6,
+          "뉴스": 5
+        },
+        "verification": "거절"
+      },
       {
         "time": "10:57:37",
         "action": "관망",
