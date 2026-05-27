@@ -797,10 +797,6 @@ if __name__ == "__main__":
 
         now = datetime.now()
 
-        # 13시 이후 종료
-        if now.hour >= 13:
-            logger.info("13시 도달 — 시스템 종료")
-            break
 
         # 장 마감 후 종료
         if now.hour >= 16:
