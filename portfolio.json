@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-27 10:21:20",
+  "updated_at": "2026-05-27 10:27:46",
   "team_a": {
     "cash": 899465,
     "invested": 100520,
@@ -13,10 +13,10 @@
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7710,
+        "current_price": 7670,
         "quantity": 14,
-        "pnl_amount": 7420,
-        "pnl_rate": 7.38,
+        "pnl_amount": 6860,
+        "pnl_rate": 6.82,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -24,6 +24,21 @@
       }
     ],
     "ai_log": [
+      {
+        "time": "10:27:46",
+        "action": "관망",
+        "ticker": "122900",
+        "name": "아이마켓코리아",
+        "reason": "거래량이 전일 대비 크게 늘며 모멘텀은 강하지만, 외국인과 기관이 모두 순매수하지 않아 '수급 + 모멘텀' 첫 번째 조건이 충족되지 않았습니다. 시장 방향성도 중립 상태라 진입에 더 보수적으로 접근하는 게 맞습니다.",
+        "confidence": "LOW",
+        "scores": {
+          "수급": 0,
+          "모멘텀": 9,
+          "섹터": 5,
+          "뉴스": 0
+        },
+        "verification": ""
+      },
       {
         "time": "10:21:20",
         "action": "관망",
@@ -96,6 +111,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "10:27:46",
+        "action": "관망",
+        "ticker": "122900",
+        "name": "아이마켓코리아",
+        "reason": "팀 B 원칙에 따라, 외국인/기관의 명확한 수급 근거가 없어 매수 기준에 미달함. 거래량만으로는 진입 불가.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 5,
+          "수급": 3,
+          "재무": 6,
+          "모멘텀": 6,
+          "뉴스": 5
+        },
+        "verification": "거절"
+      },
       {
         "time": "10:21:20",
         "action": "관망",
