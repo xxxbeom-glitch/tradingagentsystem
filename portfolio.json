@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-27 11:10:04",
+  "updated_at": "2026-05-27 11:16:12",
   "team_a": {
     "cash": 41337,
     "invested": 958520,
@@ -26,10 +26,10 @@
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7680,
+        "current_price": 7510,
         "quantity": 14,
-        "pnl_amount": 7000,
-        "pnl_rate": 6.96,
+        "pnl_amount": 4620,
+        "pnl_rate": 4.6,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -139,6 +139,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "11:16:12",
+        "action": "관망",
+        "ticker": "055490",
+        "name": "테이팩스",
+        "reason": "이미 +26% 이상 급등하여 추격 매수 리스크가 매우 높고, 기관/외국인 수급 부재로 상승 동력의 신뢰도가 낮아 진입 부적합.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 2,
+          "수급": 1,
+          "재무": 5,
+          "모멘텀": 8,
+          "뉴스": 5
+        },
+        "verification": "거절"
+      },
       {
         "time": "11:10:04",
         "action": "관망",
