@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-27 14:16:38",
+  "updated_at": "2026-05-27 14:22:49",
   "team_a": {
     "cash": 41337,
     "invested": 958520,
@@ -26,10 +26,10 @@
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7390,
+        "current_price": 7180,
         "quantity": 14,
-        "pnl_amount": 2940,
-        "pnl_rate": 2.92,
+        "pnl_amount": 0,
+        "pnl_rate": 0.0,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -139,6 +139,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "14:22:49",
+        "action": "관망",
+        "ticker": "004830",
+        "name": "덕성",
+        "reason": "팀 B의 제 1원칙인 리스크 관리 및 제 2원칙인 수급 확인 시, 외국인/기관의 순매수 부재(수급 점수 2점)로 진입 근거가 부족하여 관망합니다.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 6,
+          "수급": 2,
+          "재무": 5,
+          "모멘텀": 7,
+          "뉴스": 5
+        },
+        "verification": "거절"
+      },
       {
         "time": "14:16:38",
         "action": "관망",
@@ -439,22 +455,6 @@
           "수급": 4,
           "재무": 5,
           "모멘텀": 6,
-          "뉴스": 5
-        },
-        "verification": "거절"
-      },
-      {
-        "time": "12:18:02",
-        "action": "관망",
-        "ticker": "004440",
-        "name": "삼일씨엔에스",
-        "reason": "팀 B 원칙 1순위(리스크) 위배: 주가 급락 중이며, 2순위(수급) 및 4순위(모멘텀) 점수가 매우 낮아 매수 근거가 전무함.",
-        "confidence": "LOW",
-        "scores": {
-          "리스크": 3,
-          "수급": 2,
-          "재무": 5,
-          "모멘텀": 2,
           "뉴스": 5
         },
         "verification": "거절"
