@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-27 12:42:55",
+  "updated_at": "2026-05-27 12:49:10",
   "team_a": {
     "cash": 41337,
     "invested": 958520,
@@ -26,10 +26,10 @@
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7400,
+        "current_price": 7180,
         "quantity": 14,
-        "pnl_amount": 3080,
-        "pnl_rate": 3.06,
+        "pnl_amount": 0,
+        "pnl_rate": 0.0,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -139,6 +139,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "12:49:10",
+        "action": "관망",
+        "ticker": "004440",
+        "name": "삼일씨엔에스",
+        "reason": "DeepSeek V3 분석 검증 완료. 수급 부재(외국인/기관 순매수 0) 및 거래량 실린 급락(-5.78%)은 팀 B의 1순위 리스크 제거 및 2순위 수급 원칙에 위배되므로 진입 불가. 매수 근거 없음.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 2,
+          "수급": 0,
+          "재무": 5,
+          "모멘텀": 3,
+          "뉴스": 5
+        },
+        "verification": "거절"
+      },
       {
         "time": "12:42:55",
         "action": "관망",
@@ -439,22 +455,6 @@
           "수급": 4,
           "재무": 7,
           "모멘텀": 7,
-          "뉴스": 5
-        },
-        "verification": "거절"
-      },
-      {
-        "time": "10:45:42",
-        "action": "관망",
-        "ticker": "122900",
-        "name": "아이마켓코리아",
-        "reason": "모멘텀(거래량)은 발생했으나, 팀 B의 핵심 판단 기준인 외국인/기관의 유의미한 수급이 확인되지 않아 매수 근거 부족으로 판단.",
-        "confidence": "LOW",
-        "scores": {
-          "리스크": 8,
-          "수급": 2,
-          "재무": 5,
-          "모멘텀": 6,
           "뉴스": 5
         },
         "verification": "거절"
