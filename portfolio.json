@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-27 11:40:48",
+  "updated_at": "2026-05-27 11:47:00",
   "team_a": {
     "cash": 41337,
     "invested": 958520,
@@ -26,10 +26,10 @@
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7180,
+        "current_price": 7410,
         "quantity": 14,
-        "pnl_amount": 0,
-        "pnl_rate": 0.0,
+        "pnl_amount": 3220,
+        "pnl_rate": 3.2,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -139,6 +139,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "11:47:00",
+        "action": "관망",
+        "ticker": "122900",
+        "name": "아이마켓코리아",
+        "reason": "DeepSeek V3 분석 검토 완료. 팀B의 최우선 판단 기준인 '수급' 조건(외국인/기관 순매수)이 충족되지 않아 매수 기준 미달.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 7,
+          "수급": 3,
+          "재무": 5,
+          "모멘텀": 7,
+          "뉴스": 5
+        },
+        "verification": "거절"
+      },
       {
         "time": "11:40:48",
         "action": "관망",
