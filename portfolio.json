@@ -1,22 +1,35 @@
 {
-  "updated_at": "2026-05-27 10:27:46",
+  "updated_at": "2026-05-27 10:33:59",
   "team_a": {
-    "cash": 899465,
-    "invested": 100520,
-    "total_value": 999985,
-    "return_pct": -0.0,
+    "cash": 41337,
+    "invested": 958520,
+    "total_value": 999857,
+    "return_pct": -0.01,
     "realized_pnl": 0,
     "total_trades": 0,
     "win_rate": 0.0,
     "holdings": [
       {
+        "ticker": "006660",
+        "name": "삼성공조",
+        "buy_price": 28600,
+        "current_price": 28600,
+        "quantity": 30,
+        "pnl_amount": 0,
+        "pnl_rate": 0.0,
+        "trade_type": "단타",
+        "target_price": 0,
+        "stop_loss": 0,
+        "bought_at": "2026-05-27 10:33:13"
+      },
+      {
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7670,
+        "current_price": 7180,
         "quantity": 14,
-        "pnl_amount": 6860,
-        "pnl_rate": 6.82,
+        "pnl_amount": 0,
+        "pnl_rate": 0.0,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -24,6 +37,21 @@
       }
     ],
     "ai_log": [
+      {
+        "time": "10:33:59",
+        "action": "매수",
+        "ticker": "006660",
+        "name": "삼성공조",
+        "reason": "모멘텀이 10점 만점으로 거래량과 가격이 폭발적이며 팀 A는 수급보다 모멘텀과 타이밍이 우선이므로, 상한가 직전 강한 매수세에 올라타는 것이 맞습니다.",
+        "confidence": "MEDIUM",
+        "scores": {
+          "수급": 0,
+          "모멘텀": 10,
+          "섹터": 0,
+          "뉴스": 0
+        },
+        "verification": ""
+      },
       {
         "time": "10:27:46",
         "action": "관망",
@@ -111,6 +139,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "10:33:59",
+        "action": "관망",
+        "ticker": "122900",
+        "name": "아이마켓코리아",
+        "reason": "DeepSeek V3 분석 검증 완료. 팀 B의 최우선 판단 기준인 수급(외국인/기관) 점수가 0점으로, 리스크 관리 원칙에 따라 진입 근거가 불충분하여 매수하지 않음.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 5,
+          "수급": 0,
+          "재무": 6,
+          "모멘텀": 7,
+          "뉴스": 5
+        },
+        "verification": "거절"
+      },
       {
         "time": "10:27:46",
         "action": "관망",
