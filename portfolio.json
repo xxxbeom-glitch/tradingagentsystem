@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-27 11:47:00",
+  "updated_at": "2026-05-27 11:53:10",
   "team_a": {
     "cash": 41337,
     "invested": 958520,
@@ -26,10 +26,10 @@
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7410,
+        "current_price": 7420,
         "quantity": 14,
-        "pnl_amount": 3220,
-        "pnl_rate": 3.2,
+        "pnl_amount": 3360,
+        "pnl_rate": 3.34,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -139,6 +139,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "11:53:10",
+        "action": "관망",
+        "ticker": "122900",
+        "name": "아이마켓코리아",
+        "reason": "거래량 기반 모멘텀(8점)은 확인되나, 팀 B의 핵심 판단 기준인 수급(2점)이 전무하여 리스크 관리 원칙에 따라 진입하지 않음.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 7,
+          "수급": 2,
+          "재무": 6,
+          "모멘텀": 8,
+          "뉴스": 5
+        },
+        "verification": "거절"
+      },
       {
         "time": "11:47:00",
         "action": "관망",
