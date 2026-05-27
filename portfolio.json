@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-27 13:51:47",
+  "updated_at": "2026-05-27 13:57:55",
   "team_a": {
     "cash": 41337,
     "invested": 958520,
@@ -26,10 +26,10 @@
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7410,
+        "current_price": 7400,
         "quantity": 14,
-        "pnl_amount": 3220,
-        "pnl_rate": 3.2,
+        "pnl_amount": 3080,
+        "pnl_rate": 3.06,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -139,6 +139,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "13:57:55",
+        "action": "관망",
+        "ticker": "004830",
+        "name": "덕성",
+        "reason": "팀 B의 최우선 순위인 리스크(3점)와 수급(2점) 점수가 매우 낮아 매수 근거가 전무하여 최종 '관망' 결정.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 3,
+          "수급": 2,
+          "재무": 5,
+          "모멘텀": 5,
+          "뉴스": 2
+        },
+        "verification": "거절"
+      },
       {
         "time": "13:51:47",
         "action": "관망",
@@ -439,22 +455,6 @@
           "수급": 3,
           "재무": 7,
           "모멘텀": 7,
-          "뉴스": 5
-        },
-        "verification": "거절"
-      },
-      {
-        "time": "11:53:10",
-        "action": "관망",
-        "ticker": "122900",
-        "name": "아이마켓코리아",
-        "reason": "거래량 기반 모멘텀(8점)은 확인되나, 팀 B의 핵심 판단 기준인 수급(2점)이 전무하여 리스크 관리 원칙에 따라 진입하지 않음.",
-        "confidence": "LOW",
-        "scores": {
-          "리스크": 7,
-          "수급": 2,
-          "재무": 6,
-          "모멘텀": 8,
           "뉴스": 5
         },
         "verification": "거절"
