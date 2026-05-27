@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-05-27 10:14:40",
+  "updated_at": "2026-05-27 10:21:20",
   "team_a": {
     "cash": 899465,
     "invested": 100520,
@@ -13,10 +13,10 @@
         "ticker": "122900",
         "name": "아이마켓코리아",
         "buy_price": 7180,
-        "current_price": 7760,
+        "current_price": 7710,
         "quantity": 14,
-        "pnl_amount": 8120,
-        "pnl_rate": 8.08,
+        "pnl_amount": 7420,
+        "pnl_rate": 7.38,
         "trade_type": "단타",
         "target_price": 0,
         "stop_loss": 0,
@@ -24,6 +24,21 @@
       }
     ],
     "ai_log": [
+      {
+        "time": "10:21:20",
+        "action": "관망",
+        "ticker": "122900",
+        "name": "아이마켓코리아",
+        "reason": "모멘텀(거래량 증가)은 있지만 외국인/기관 순매수가 없어 수급이 가장 중요한 1순위 조건을 충족하지 못함. 돈이 몰리는 흐름이 아니므로 진입하지 않음.",
+        "confidence": "LOW",
+        "scores": {
+          "수급": 2,
+          "모멘텀": 8,
+          "섹터": 3,
+          "뉴스": 1
+        },
+        "verification": ""
+      },
       {
         "time": "10:14:40",
         "action": "관망",
@@ -81,6 +96,22 @@
     "win_rate": 0.0,
     "holdings": [],
     "ai_log": [
+      {
+        "time": "10:21:20",
+        "action": "관망",
+        "ticker": "122900",
+        "name": "아이마켓코리아",
+        "reason": "팀 B의 제1원칙은 리스크 관리이며, 현재 외국인/기관의 명확한 수급 동반 없이 거래량만 실린 급등은 추격 매수 리스크가 매우 높다고 판단하여 진입하지 않습니다.",
+        "confidence": "LOW",
+        "scores": {
+          "리스크": 6,
+          "수급": 2,
+          "재무": 5,
+          "모멘텀": 7,
+          "뉴스": 5
+        },
+        "verification": "거절"
+      },
       {
         "time": "10:14:40",
         "action": "관망",
